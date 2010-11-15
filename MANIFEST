@@ -1,0 +1,16 @@
+README
+MANIFEST
+Makefile.PL
+lib
+lib/CGI
+lib/CGI/Lingua.pm
+Changes
+Makefile
+ignore.txt
+t/pod.t
+t/manifest.t
+t/new.t
+t/boilerplate.t
+t/00-load.t
+t/pod-coverage.t
+META.yml                                 Module meta-data (added by MakeMaker)
