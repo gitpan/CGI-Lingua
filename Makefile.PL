@@ -13,6 +13,13 @@ WriteMakefile(
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More' => 0,
+	'Locale::Object::Country' => 0,
+	'I18N::AcceptLanguage' => 0,
+	'Locale::Language' => 0,
+	'I18N::LangTags::Detect' => 0,
+	'Data::Validate::IP' => 0,
+	'Net::Whois::IANA' => 0,
+        'Locale::Object::Country' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'CGI-Lingua-*' },
