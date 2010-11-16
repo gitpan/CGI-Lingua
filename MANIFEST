@@ -1,8 +1,6 @@
 README
 MANIFEST
 Makefile.PL
-lib
-lib/CGI
 lib/CGI/Lingua.pm
 Changes
 Makefile

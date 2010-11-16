@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-$VERSION = 0.02;
+$VERSION = 0.03;
 
 =head1 NAME
 
@@ -13,28 +13,28 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
-Quick summary of what the module does.
-
-Perhaps a little code snippet.
+CGI::Lingua provides a simple basis to determine which language to display a website in.
+The website tells CGI::Lingua which languages it supports. Based on that list CGI::Lingua
+tells the application which language the user would like to use.
 
     use CGI::Lingua;
 
     my $l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
     my $language = CGI::Lingua->language();
     if ($language eq 'English') {
-       print "<P>Hello</P>";
+       print '<P>Hello</P>';
     } elsif($language eq 'French') {
-    	print "<P>Bonjour</P>";
+	print '<P>Bonjour</P>';
     } else {	# $language eq 'Unknown'
-    	my $rl = CGI::Lingua->requested_language();
+	my $rl = CGI::Lingua->requested_language();
 	print "<P>Sorry for now this page is not available in $rl.</P>";
     }
     ...
@@ -42,9 +42,15 @@ Perhaps a little code snippet.
 =head1 SUBROUTINES/METHODS
 
 =head2 new
+
 Creates a CGI::Lingua object.
-Takes one parameter: a list of languages that the website supports.
-my $l = CGI::Lingua(supported => [('en', 'fe', 'en-gb', en-us')]);
+Takes one parameter: a list of languages, in RFC-1766 format, that the website supports.
+Language codes are of the form primary-code [ - country-code ] e.g. 'en', 'en-gb' for English and British English respectively.
+For a list of primary-codes refer to ISO-936.
+For a list of country-codes refer to ISO-3166.
+
+	# We support English ,French, British and American English, in that order
+	my $l = CGI::Lingua(supported => [('en', 'fr', 'en-gb', en-us')]);
 
 =cut
 
@@ -72,6 +78,7 @@ sub new {
 }
 
 =head2 language
+
 Tells the CGI application what language to display its messages in.
 The language is the natural name e.g. 'English' or 'Japanese'.
 
@@ -88,7 +95,8 @@ sub language {
 }
 
 =head2 sublanguage
-Tells the CGI what variant to use e.g. 'US' for 'American English'.
+
+Tells the CGI what variant to use e.g. 'United Kingdom'.
 
 =cut
 
@@ -103,6 +111,7 @@ sub sublanguage {
 }
 
 =head2 requested_language {
+
 Gives a human readable rendition of what language the user asked for whether
 or not it is supported.
 
