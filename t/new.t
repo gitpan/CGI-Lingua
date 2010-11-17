@@ -38,10 +38,10 @@ LANGUAGES: {
 	ok($l->requested_language() ne 'Unknown');
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = undef;
+        $ENV{'REMOTE_ADDR'} = '212.159.106.41';
 	$l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
-        $ENV{'REMOTE_ADDR'} = '212.159.106.41';
 	ok($l->language() eq 'English');
 	ok(defined $l->requested_language());
 	ok($l->requested_language() eq 'English');

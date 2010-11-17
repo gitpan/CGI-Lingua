@@ -1,6 +1,9 @@
 Revision history for CGI-Lingua
 
-0.03	
+0.04	Wed Nov 17 09:55:49 EST 2010
+	Cope with I18N::LangTags::Detect failing to detect anything
+
+0.03	Tue Nov 16 10:40:54 EST 2010
 	Tidied the documentation
 	Tests that CGI::Lingua->requested_language is not undefined
 	Fixed the MANIFEST file (RELEASE_TESTING=1 make test)

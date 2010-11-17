@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-$VERSION = 0.03;
+$VERSION = 0.04;
 
 =head1 NAME
 
@@ -13,11 +13,11 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.03
+Version 0.04
 
 =cut
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 =head1 SYNOPSIS
 
@@ -46,11 +46,12 @@ tells the application which language the user would like to use.
 Creates a CGI::Lingua object.
 Takes one parameter: a list of languages, in RFC-1766 format, that the website supports.
 Language codes are of the form primary-code [ - country-code ] e.g. 'en', 'en-gb' for English and British English respectively.
+
 For a list of primary-codes refer to ISO-936.
 For a list of country-codes refer to ISO-3166.
 
-	# We support English ,French, British and American English, in that order
-	my $l = CGI::Lingua(supported => [('en', 'fr', 'en-gb', en-us')]);
+    # We support English, French, British and American English, in that order
+    my $l = CGI::Lingua(supported => [('en', 'fr', 'en-gb', en-us')]);
 
 =cut
 
@@ -110,7 +111,7 @@ sub sublanguage {
 	return $self->{_sublanguage};
 }
 
-=head2 requested_language {
+=head2 requested_language
 
 Gives a human readable rendition of what language the user asked for whether
 or not it is supported.
@@ -176,8 +177,9 @@ sub _find_language {
 					$self->{_rlanguage} = "$1 (" . Locale::Object::Country->new(code_alpha2 => $2)->name . ')';
 				}
 			}
+			return;
                 }
-		return;
+		$self->{_rlanguage} = 'Unknown';
         }
 
         # The client hasn't said which to use, guess from their IP address
@@ -203,8 +205,10 @@ sub _find_language {
                 $iana->whois_query(-ip => $ip);
                 our $country = lc($iana->country());
                 # our $country = lc(Net::Whois::IP::whoisip_query($ip)->{'Country'});
-                $self->{_slanguage} = (Locale::Object::Country->new(code_alpha2 => $country)->languages_official)[0]->name;
-                $self->{_rlanguage} = $self->{_slanguage};
+                $self->{_rlanguage} = (Locale::Object::Country->new(code_alpha2 => $country)->languages_official)[0]->name;
+		unless((exists($self->{_slanguage})) && ($self->{_slanguage} ne 'Unknown')) {
+			$self->{_slanguage} = $self->{_rlanguage};
+		}
 	}
 }
 
