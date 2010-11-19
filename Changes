@@ -1,5 +1,8 @@
 Revision history for CGI-Lingua
 
+0.05	Thu Nov 18 19:19:00 EST 2010
+	Fix test which could fail if you have $LANG set
+
 0.04	Wed Nov 17 09:55:49 EST 2010
 	Cope with I18N::LangTags::Detect failing to detect anything
 

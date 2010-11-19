@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-$VERSION = 0.04;
+$VERSION = 0.05;
 
 =head1 NAME
 
@@ -13,11 +13,11 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.04
+Version 0.05
 
 =cut
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 =head1 SYNOPSIS
 
@@ -174,7 +174,11 @@ sub _find_language {
 				$self->{_rlanguage} = $l;
 			} else {
 				if($self->{_rlanguage} =~ /(.+)-(.+)/) {
-					$self->{_rlanguage} = "$1 (" . Locale::Object::Country->new(code_alpha2 => $2)->name . ')';
+					my $l = Locale::Language::code2language($1);
+					unless($l) {
+						$l = $1;
+					}
+					$self->{_rlanguage} = "$l (" . Locale::Object::Country->new(code_alpha2 => $2)->name . ')';
 				}
 			}
 			return;
