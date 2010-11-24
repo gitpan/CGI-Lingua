@@ -14,10 +14,14 @@ LANGUAGES: {
 	};
 	ok($@ =~ m/You must give a list of supported languages/);
 
+	# Stop I18N::LangTags::Detect from detecting something
 	$ENV{'LANGUAGE'} = undef;
 	$ENV{'LC_ALL'} = undef;
 	$ENV{'LC_MESSAGES'} = undef;
 	$ENV{'LANG'} = undef;
+	if($^O eq 'MSWin32') {
+		$ENV{'IGNORE_WIN32_LOCALE'} = 1;
+	}
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = undef;
         $ENV{'REMOTE_ADDR'} = undef;
@@ -40,6 +44,9 @@ LANGUAGES: {
 	ok($l->isa('CGI::Lingua'));
 	ok($l->language() eq 'Unknown');
 	ok(defined $l->requested_language());
+	if($l->requested_language() ne 'Unknown') {
+		diag('Expected Unknown got "' . $l->requested_language() . '"');
+	}
 	ok($l->requested_language() eq 'Unknown');
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'zz';
@@ -53,6 +60,9 @@ LANGUAGES: {
 	$l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
+	if($l->language() ne 'English') {
+		diag('Expected English got "' . $l->requested_language() . '"');
+	}
 	ok($l->language() eq 'English');
 	ok(defined $l->requested_language());
 	if($l->requested_language() !~ /English/) {

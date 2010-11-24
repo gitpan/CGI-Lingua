@@ -4,8 +4,9 @@ use warnings;
 use strict;
 use Carp;
 
+use Error qw(:try);
 use vars qw($VERSION);
-$VERSION = 0.05;
+$VERSION = 0.06;
 
 =head1 NAME
 
@@ -13,11 +14,11 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.05
+Version 0.06
 
 =cut
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 =head1 SYNOPSIS
 
@@ -189,10 +190,8 @@ sub _find_language {
         # The client hasn't said which to use, guess from their IP address
         if($ENV{'REMOTE_ADDR'}) {
                 require Data::Validate::IP;
-                require Net::Whois::IANA;
 
                 Data::Validate::IP->import;
-                Net::Whois::IANA->import;
 
                 our $ip = $ENV{'REMOTE_ADDR'};
 
@@ -204,11 +203,21 @@ sub _find_language {
                         return;
                 }
 
+		our $country;
                 # Translate country to first official language
-                our $iana = new Net::Whois::IANA;
-                $iana->whois_query(-ip => $ip);
-                our $country = lc($iana->country());
-                # our $country = lc(Net::Whois::IP::whoisip_query($ip)->{'Country'});
+		try {
+			require Net::Whois::IANA;
+			Net::Whois::IANA->import;
+
+			our $iana = new Net::Whois::IANA;
+			$iana->whois_query(-ip => $ip);
+			$country = lc($iana->country());
+		} otherwise {
+			require Net::Whois::IP;
+			Net::Whois::IP->import;
+
+			$country = lc(Net::Whois::IP::whoisip_query($ip)->{'Country'});
+		};
                 $self->{_rlanguage} = (Locale::Object::Country->new(code_alpha2 => $country)->languages_official)[0]->name;
 		unless((exists($self->{_slanguage})) && ($self->{_slanguage} ne 'Unknown')) {
 			$self->{_slanguage} = $self->{_rlanguage};
