@@ -4,9 +4,8 @@ use warnings;
 use strict;
 use Carp;
 
-use Error qw(:try);
 use vars qw($VERSION);
-$VERSION = 0.06;
+$VERSION = 0.07;
 
 =head1 NAME
 
@@ -14,11 +13,11 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.06
+Version 0.07
 
 =cut
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 =head1 SYNOPSIS
 
@@ -132,45 +131,45 @@ sub requested_language {
 sub _find_language {
 	my $self = shift;
 
-        $self->{_rlanguage} = 'Unknown';
-        $self->{_slanguage} = 'Unknown';
+	$self->{_rlanguage} = 'Unknown';
+	$self->{_slanguage} = 'Unknown';
 
-        require Locale::Object::Country;
-        Locale::Object::Country->import;
+	require Locale::Object::Country;
+	Locale::Object::Country->import;
 
-        # Use what the client has said
-        if($ENV{'HTTP_ACCEPT_LANGUAGE'}) {
-                require I18N::AcceptLanguage;
-                require Locale::Language;
+	# Use what the client has said
+	if($ENV{'HTTP_ACCEPT_LANGUAGE'}) {
+		require I18N::AcceptLanguage;
+		require Locale::Language;
 
-                I18N::AcceptLanguage->import;
-                Locale::Language->import;
+		I18N::AcceptLanguage->import;
+		Locale::Language->import;
 
-                our $l = I18N::AcceptLanguage->new()->accepts($ENV{'HTTP_ACCEPT_LANGUAGE'}, $self->{_supported});
-                if($l) {
-                        $self->{_slanguage} = Locale::Language::code2language($l);
-                        if($self->{_slanguage}) {
-                                $self->{_rlanguage} = $self->{_slanguage};
-                                return;
-                        }
-                        if($l =~ /(.+)-(.+)/) {
-                                $l = I18N::AcceptLanguage->new()->accepts($1, $self->{_supported});
-                                if($l) {
-                                        $self->{_slanguage} = Locale::Language::code2language($l);
-                                        if($self->{_slanguage}) {
-                                                $self->{_sublanguage} = Locale::Object::Country->new(code_alpha2 => $2)->name;
-                                                if($self->{_sublanguage}) {
-                                                        $self->{_rlanguage} = "$self->{_slanguage} ($self->{_sublanguage})";
-                                                }
-                                                return;
-                                        }
-                                }
-                       }
-                }
-                require I18N::LangTags::Detect;
-                $self->{_rlanguage} = I18N::LangTags::Detect::detect();
-                if($self->{_rlanguage}) {
-                        my $l = Locale::Language::code2language($self->{_rlanguage});
+		our $l = I18N::AcceptLanguage->new()->accepts($ENV{'HTTP_ACCEPT_LANGUAGE'}, $self->{_supported});
+		if($l) {
+			$self->{_slanguage} = Locale::Language::code2language($l);
+			if($self->{_slanguage}) {
+				$self->{_rlanguage} = $self->{_slanguage};
+				return;
+			}
+			if($l =~ /(.+)-(.+)/) {
+				$l = I18N::AcceptLanguage->new()->accepts($1, $self->{_supported});
+				if($l) {
+					$self->{_slanguage} = Locale::Language::code2language($l);
+					if($self->{_slanguage}) {
+						$self->{_sublanguage} = Locale::Object::Country->new(code_alpha2 => $2)->name;
+						if($self->{_sublanguage}) {
+							$self->{_rlanguage} = "$self->{_slanguage} ($self->{_sublanguage})";
+						}
+						return;
+					}
+				}
+		       }
+		}
+		require I18N::LangTags::Detect;
+		$self->{_rlanguage} = I18N::LangTags::Detect::detect();
+		if($self->{_rlanguage}) {
+			my $l = Locale::Language::code2language($self->{_rlanguage});
 			if($l) {
 				$self->{_rlanguage} = $l;
 			} else {
@@ -183,42 +182,43 @@ sub _find_language {
 				}
 			}
 			return;
-                }
+		}
 		$self->{_rlanguage} = 'Unknown';
-        }
+	}
 
-        # The client hasn't said which to use, guess from their IP address
-        if($ENV{'REMOTE_ADDR'}) {
-                require Data::Validate::IP;
+	# The client hasn't said which to use, guess from their IP address
+	if($ENV{'REMOTE_ADDR'}) {
+		require Data::Validate::IP;
+		require Net::Whois::IANA;
 
-                Data::Validate::IP->import;
+		Data::Validate::IP->import;
+		Net::Whois::IANA->import;
 
-                our $ip = $ENV{'REMOTE_ADDR'};
+		our $ip = $ENV{'REMOTE_ADDR'};
 
-                unless($ip) {
-                        return;
-                }
-                unless(is_ipv4($ip)) {
-                        carp "Unexpected IP $ip\n";
-                        return;
-                }
+		unless($ip) {
+			return;
+		}
+		unless(is_ipv4($ip)) {
+			carp "Unexpected IP $ip\n";
+			return;
+		}
 
-		our $country;
-                # Translate country to first official language
-		try {
-			require Net::Whois::IANA;
-			Net::Whois::IANA->import;
+		# Translate country to first official language
 
-			our $iana = new Net::Whois::IANA;
-			$iana->whois_query(-ip => $ip);
-			$country = lc($iana->country());
-		} otherwise {
+		our $iana = new Net::Whois::IANA;
+		$iana->whois_query(-ip => $ip);
+
+		our $country = $iana->country();
+		if($country) {
+			$country = lc($country);
+		} else {
 			require Net::Whois::IP;
 			Net::Whois::IP->import;
 
 			$country = lc(Net::Whois::IP::whoisip_query($ip)->{'Country'});
 		};
-                $self->{_rlanguage} = (Locale::Object::Country->new(code_alpha2 => $country)->languages_official)[0]->name;
+		$self->{_rlanguage} = (Locale::Object::Country->new(code_alpha2 => $country)->languages_official)[0]->name;
 		unless((exists($self->{_slanguage})) && ($self->{_slanguage} ne 'Unknown')) {
 			$self->{_slanguage} = $self->{_rlanguage};
 		}

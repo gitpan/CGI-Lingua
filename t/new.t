@@ -15,16 +15,16 @@ LANGUAGES: {
 	ok($@ =~ m/You must give a list of supported languages/);
 
 	# Stop I18N::LangTags::Detect from detecting something
-	$ENV{'LANGUAGE'} = undef;
-	$ENV{'LC_ALL'} = undef;
-	$ENV{'LC_MESSAGES'} = undef;
-	$ENV{'LANG'} = undef;
+	delete $ENV{'LANGUAGE'};
+	delete $ENV{'LC_ALL'};
+	delete $ENV{'LC_MESSAGES'};
+	delete $ENV{'LANG'};
 	if($^O eq 'MSWin32') {
 		$ENV{'IGNORE_WIN32_LOCALE'} = 1;
 	}
 
-	$ENV{'HTTP_ACCEPT_LANGUAGE'} = undef;
-        $ENV{'REMOTE_ADDR'} = undef;
+	delete $ENV{'HTTP_ACCEPT_LANGUAGE'};
+        delete $ENV{'REMOTE_ADDR'};
 	my $l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
