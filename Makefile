@@ -17,7 +17,7 @@
 #     LICENSE => q[perl]
 #     NAME => q[CGI::Lingua]
 #     PL_FILES => {  }
-#     PREREQ_PM => { Locale::Language=>q[0], Locale::Object::Country=>q[0], Data::Validate::IP=>q[0], I18N::AcceptLanguage=>q[0], Test::More=>q[0], Error=>q[0], I18N::LangTags::Detect=>q[0], Net::Whois::IP=>q[0], Net::Whois::IANA=>q[0] }
+#     PREREQ_PM => { Test::More=>q[0], Locale::Language=>q[0], I18N::LangTags::Detect=>q[0], Net::Whois::IP=>q[0], Locale::Object::Country=>q[0], Data::Validate::IP=>q[0], Net::Whois::IANA=>q[0], I18N::AcceptLanguage=>q[0] }
 #     VERSION_FROM => q[lib/CGI/Lingua.pm]
 #     clean => { FILES=>q[CGI-Lingua-*] }
 #     dist => { COMPRESS=>q[gzip -9f], SUFFIX=>q[gz] }
@@ -59,11 +59,11 @@ DIRFILESEP = /
 DFSEP = $(DIRFILESEP)
 NAME = CGI::Lingua
 NAME_SYM = CGI_Lingua
-VERSION = 0.07
+VERSION = 0.08
 VERSION_MACRO = VERSION
-VERSION_SYM = 0_07
+VERSION_SYM = 0_08
 DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
-XS_VERSION = 0.07
+XS_VERSION = 0.08
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 INST_ARCHLIB = blib/arch
@@ -257,7 +257,7 @@ RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
 DIST_CP = best
 DIST_DEFAULT = tardist
 DISTNAME = CGI-Lingua
-DISTVNAME = CGI-Lingua-0.07
+DISTVNAME = CGI-Lingua-0.08
 
 
 # --- MakeMaker macro section:
@@ -478,7 +478,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) Generating META.yml
 	$(NOECHO) $(ECHO) '--- #YAML:1.0' > META_new.yml
 	$(NOECHO) $(ECHO) 'name:               CGI-Lingua' >> META_new.yml
-	$(NOECHO) $(ECHO) 'version:            0.07' >> META_new.yml
+	$(NOECHO) $(ECHO) 'version:            0.08' >> META_new.yml
 	$(NOECHO) $(ECHO) 'abstract:           Natural language choices for CGI programs' >> META_new.yml
 	$(NOECHO) $(ECHO) 'author:' >> META_new.yml
 	$(NOECHO) $(ECHO) '    - Nigel Horne <njh@bandsman.co.uk>' >> META_new.yml
@@ -490,7 +490,6 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) '    ExtUtils::MakeMaker:  0' >> META_new.yml
 	$(NOECHO) $(ECHO) 'requires:' >> META_new.yml
 	$(NOECHO) $(ECHO) '    Data::Validate::IP:   0' >> META_new.yml
-	$(NOECHO) $(ECHO) '    Error:                0' >> META_new.yml
 	$(NOECHO) $(ECHO) '    I18N::AcceptLanguage:  0' >> META_new.yml
 	$(NOECHO) $(ECHO) '    I18N::LangTags::Detect:  0' >> META_new.yml
 	$(NOECHO) $(ECHO) '    Locale::Language:     0' >> META_new.yml
@@ -796,12 +795,11 @@ testdb_static :: testdb_dynamic
 # --- MakeMaker ppd section:
 # Creates a PPD (Perl Package Description) for a binary distribution.
 ppd :
-	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="0.07">' > $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="0.08">' > $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <ABSTRACT>Natural language choices for CGI programs</ABSTRACT>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <AUTHOR>Nigel Horne &lt;njh@bandsman.co.uk&gt;</AUTHOR>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <IMPLEMENTATION>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Data::Validate::IP" />' >> $(DISTNAME).ppd
-	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Error::" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="I18N::AcceptLanguage" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="I18N::LangTags::Detect" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Locale::Language" />' >> $(DISTNAME).ppd

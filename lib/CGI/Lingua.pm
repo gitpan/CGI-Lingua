@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-$VERSION = 0.07;
+$VERSION = 0.08;
 
 =head1 NAME
 
@@ -13,11 +13,11 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.07
+Version 0.08
 
 =cut
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 =head1 SYNOPSIS
 
@@ -218,9 +218,14 @@ sub _find_language {
 
 			$country = lc(Net::Whois::IP::whoisip_query($ip)->{'Country'});
 		};
-		$self->{_rlanguage} = (Locale::Object::Country->new(code_alpha2 => $country)->languages_official)[0]->name;
-		unless((exists($self->{_slanguage})) && ($self->{_slanguage} ne 'Unknown')) {
-			$self->{_slanguage} = $self->{_rlanguage};
+		my $l = (Locale::Object::Country->new(code_alpha2 => $country)->languages_official)[0];
+		if($l) {
+			$self->{_rlanguage} = $l->name;
+			unless((exists($self->{_slanguage})) && ($self->{_slanguage} ne 'Unknown')) {
+				$self->{_slanguage} = $self->{_rlanguage};
+			}
+		} else {
+			carp("Can't determing language from IP $ip, country $country");
 		}
 	}
 }
