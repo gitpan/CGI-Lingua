@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-$VERSION = 0.08;
+$VERSION = 0.09;
 
 =head1 NAME
 
@@ -13,11 +13,11 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.08
+Version 0.09
 
 =cut
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 =head1 SYNOPSIS
 
@@ -187,6 +187,7 @@ sub _find_language {
 	}
 
 	# The client hasn't said which to use, guess from their IP address
+	# TODO: Whois look ups can be slow - add cache?
 	if($ENV{'REMOTE_ADDR'}) {
 		require Data::Validate::IP;
 		require Net::Whois::IANA;
@@ -218,14 +219,36 @@ sub _find_language {
 
 			$country = lc(Net::Whois::IP::whoisip_query($ip)->{'Country'});
 		};
+		if($country eq 'hk') {
+			# Hong Kong is no longer a country, but Whois thinks
+			# it is - try "whois 218.213.130.87"
+			$country = 'cn';
+		}
 		my $l = (Locale::Object::Country->new(code_alpha2 => $country)->languages_official)[0];
 		if($l) {
 			$self->{_rlanguage} = $l->name;
 			unless((exists($self->{_slanguage})) && ($self->{_slanguage} ne 'Unknown')) {
-				$self->{_slanguage} = $self->{_rlanguage};
+				# Check if the language is one that we support
+				# Don't bother with secondary language
+				require Locale::Language;
+
+				Locale::Language->import;
+
+				my $code = Locale::Language::language2code($self->{_rlanguage});
+				foreach (@{$self->{_supported}}) {
+					if($_ =~ /^(.+)-.+/) {
+						$l = $1;
+					} else {
+						$l = $_;
+					}
+					if($code eq $l) {
+						$self->{_slanguage} = $self->{_rlanguage};
+						last;
+					}
+				}
 			}
 		} else {
-			carp("Can't determing language from IP $ip, country $country");
+			carp("Can't determine language from IP $ip, country $country");
 		}
 	}
 }

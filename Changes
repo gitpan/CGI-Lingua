@@ -1,5 +1,9 @@
 Revision history for CGI-Lingua
 
+0.09 Sat Dec  4 11:43:12 EST 2010
+	Fix spelling mistake
+	Handle Whois thinking Hong Kong is a country
+
 0.08	Wed Dec  1 13:31:04 EST 2010
 	Handle some cases where the language can't be determined from the IP
 	address

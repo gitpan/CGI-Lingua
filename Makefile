@@ -59,11 +59,11 @@ DIRFILESEP = /
 DFSEP = $(DIRFILESEP)
 NAME = CGI::Lingua
 NAME_SYM = CGI_Lingua
-VERSION = 0.08
+VERSION = 0.09
 VERSION_MACRO = VERSION
-VERSION_SYM = 0_08
+VERSION_SYM = 0_09
 DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
-XS_VERSION = 0.08
+XS_VERSION = 0.09
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 INST_ARCHLIB = blib/arch
@@ -257,7 +257,7 @@ RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
 DIST_CP = best
 DIST_DEFAULT = tardist
 DISTNAME = CGI-Lingua
-DISTVNAME = CGI-Lingua-0.08
+DISTVNAME = CGI-Lingua-0.09
 
 
 # --- MakeMaker macro section:
@@ -478,7 +478,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) Generating META.yml
 	$(NOECHO) $(ECHO) '--- #YAML:1.0' > META_new.yml
 	$(NOECHO) $(ECHO) 'name:               CGI-Lingua' >> META_new.yml
-	$(NOECHO) $(ECHO) 'version:            0.08' >> META_new.yml
+	$(NOECHO) $(ECHO) 'version:            0.09' >> META_new.yml
 	$(NOECHO) $(ECHO) 'abstract:           Natural language choices for CGI programs' >> META_new.yml
 	$(NOECHO) $(ECHO) 'author:' >> META_new.yml
 	$(NOECHO) $(ECHO) '    - Nigel Horne <njh@bandsman.co.uk>' >> META_new.yml
@@ -795,7 +795,7 @@ testdb_static :: testdb_dynamic
 # --- MakeMaker ppd section:
 # Creates a PPD (Perl Package Description) for a binary distribution.
 ppd :
-	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="0.08">' > $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="0.09">' > $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <ABSTRACT>Natural language choices for CGI programs</ABSTRACT>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <AUTHOR>Nigel Horne &lt;njh@bandsman.co.uk&gt;</AUTHOR>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <IMPLEMENTATION>' >> $(DISTNAME).ppd

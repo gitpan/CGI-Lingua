@@ -7,8 +7,9 @@ Makefile
 ignore.txt
 t/pod.t
 t/manifest.t
-t/new.t
 t/boilerplate.t
 t/00-load.t
+t/01-new.t
+t/hk.t
 t/pod-coverage.t
 META.yml                                 Module meta-data (added by MakeMaker)
