@@ -5,7 +5,8 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-$VERSION = 0.09;
+$VERSION = '0.10';
+$VERSION = eval $VERSION;
 
 =head1 NAME
 
@@ -13,11 +14,11 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.09
+Version 0.10
 
 =cut
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 =head1 SYNOPSIS
 
@@ -28,13 +29,13 @@ tells the application which language the user would like to use.
     use CGI::Lingua;
 
     my $l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
-    my $language = CGI::Lingua->language();
+    my $language = $l->language();
     if ($language eq 'English') {
        print '<P>Hello</P>';
     } elsif($language eq 'French') {
 	print '<P>Bonjour</P>';
     } else {	# $language eq 'Unknown'
-	my $rl = CGI::Lingua->requested_language();
+	my $rl = $l->requested_language();
 	print "<P>Sorry for now this page is not available in $rl.</P>";
     }
     ...
@@ -166,24 +167,27 @@ sub _find_language {
 				}
 		       }
 		}
-		require I18N::LangTags::Detect;
-		$self->{_rlanguage} = I18N::LangTags::Detect::detect();
-		if($self->{_rlanguage}) {
-			my $l = Locale::Language::code2language($self->{_rlanguage});
-			if($l) {
-				$self->{_rlanguage} = $l;
-			} else {
-				if($self->{_rlanguage} =~ /(.+)-(.+)/) {
-					my $l = Locale::Language::code2language($1);
-					unless($l) {
-						$l = $1;
+		if($self->{_slanguage}) {
+			require I18N::LangTags::Detect;
+			$self->{_rlanguage} = I18N::LangTags::Detect::detect();
+			if($self->{_rlanguage}) {
+				my $l = Locale::Language::code2language($self->{_rlanguage});
+				if($l) {
+					$self->{_rlanguage} = $l;
+				} else {
+					if($self->{_rlanguage} =~ /(.+)-(.+)/) {
+						my $l = Locale::Language::code2language($1);
+						unless($l) {
+							$l = $1;
+						}
+						$self->{_rlanguage} = "$l (" . Locale::Object::Country->new(code_alpha2 => $2)->name . ')';
 					}
-					$self->{_rlanguage} = "$l (" . Locale::Object::Country->new(code_alpha2 => $2)->name . ')';
 				}
+				return;
 			}
-			return;
 		}
 		$self->{_rlanguage} = 'Unknown';
+		$self->{_slanguage} = 'Unknown';
 	}
 
 	# The client hasn't said which to use, guess from their IP address
@@ -225,7 +229,7 @@ sub _find_language {
 			$country = 'cn';
 		}
 		my $l = (Locale::Object::Country->new(code_alpha2 => $country)->languages_official)[0];
-		if($l) {
+		if($l && $l->name) {
 			$self->{_rlanguage} = $l->name;
 			unless((exists($self->{_slanguage})) && ($self->{_slanguage} ne 'Unknown')) {
 				# Check if the language is one that we support

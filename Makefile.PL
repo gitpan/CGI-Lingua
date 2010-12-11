@@ -20,7 +20,7 @@ WriteMakefile(
 	'Data::Validate::IP' => 0,
 	'Net::Whois::IANA' => 0,
 	'Net::Whois::IP' => 0,
-        'Locale::Object::Country' => 0,
+	'Locale::Language' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'CGI-Lingua-*' },
