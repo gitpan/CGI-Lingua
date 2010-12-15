@@ -8,7 +8,7 @@ WriteMakefile(
     VERSION_FROM        => 'lib/CGI/Lingua.pm',
     ABSTRACT_FROM       => 'lib/CGI/Lingua.pm',
     ($ExtUtils::MakeMaker::VERSION >= 6.3002
-      ? ('LICENSE'=> 'perl')
+      ? ('LICENSE'=> 'GPL')
       : ()),
     PL_FILES            => {},
     PREREQ_PM => {

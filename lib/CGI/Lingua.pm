@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-$VERSION = '0.10';
+$VERSION = '0.11';
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -14,11 +14,11 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.10
+Version 0.11
 
 =cut
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 =head1 SYNOPSIS
 
@@ -38,14 +38,22 @@ tells the application which language the user would like to use.
 	my $rl = $l->requested_language();
 	print "<P>Sorry for now this page is not available in $rl.</P>";
     }
+
     ...
+
+    use CHI;
+    use CGI::Lingua;
+
+    my $cache = (CHI->new(driver => 'File'));
+    my $l = CGI::Lingua->new(supported => ['en', 'fr], cache => $cache);
 
 =head1 SUBROUTINES/METHODS
 
 =head2 new
 
 Creates a CGI::Lingua object.
-Takes one parameter: a list of languages, in RFC-1766 format, that the website supports.
+
+Takes one mandatory parameter: a list of languages, in RFC-1766 format, that the website supports.
 Language codes are of the form primary-code [ - country-code ] e.g. 'en', 'en-gb' for English and British English respectively.
 
 For a list of primary-codes refer to ISO-936.
@@ -53,6 +61,8 @@ For a list of country-codes refer to ISO-3166.
 
     # We support English, French, British and American English, in that order
     my $l = CGI::Lingua(supported => [('en', 'fr', 'en-gb', en-us')]);
+
+Takes one optional parameter, a CHI object which is used to cache Whois lookups.
 
 =cut
 
@@ -69,6 +79,7 @@ sub new {
 
 	my $self = {
 		_supported => $params{supported}, # List of languages (two letters) that the application
+		_cache => $params{cache},	# CHI
 				# (website) supports
 		_rlanguage => undef,	# Requested language
 		_slanguage => undef,	# Language that the website should display
@@ -146,7 +157,7 @@ sub _find_language {
 		I18N::AcceptLanguage->import;
 		Locale::Language->import;
 
-		our $l = I18N::AcceptLanguage->new()->accepts($ENV{'HTTP_ACCEPT_LANGUAGE'}, $self->{_supported});
+		my $l = I18N::AcceptLanguage->new()->accepts($ENV{'HTTP_ACCEPT_LANGUAGE'}, $self->{_supported});
 		if($l) {
 			$self->{_slanguage} = Locale::Language::code2language($l);
 			if($self->{_slanguage}) {
@@ -193,36 +204,44 @@ sub _find_language {
 	# The client hasn't said which to use, guess from their IP address
 	# TODO: Whois look ups can be slow - add cache?
 	if($ENV{'REMOTE_ADDR'}) {
-		require Data::Validate::IP;
-		require Net::Whois::IANA;
-
-		Data::Validate::IP->import;
-		Net::Whois::IANA->import;
-
-		our $ip = $ENV{'REMOTE_ADDR'};
+		my $ip = $ENV{'REMOTE_ADDR'};
 
 		unless($ip) {
 			return;
 		}
+		require Data::Validate::IP;
+		Data::Validate::IP->import;
+
 		unless(is_ipv4($ip)) {
 			carp "Unexpected IP $ip\n";
 			return;
 		}
 
-		# Translate country to first official language
+		my $country;
 
-		our $iana = new Net::Whois::IANA;
-		$iana->whois_query(-ip => $ip);
+		if($self->{_cache}) {
+			$country = $self->{_cache}->get($ip);
 
-		our $country = $iana->country();
-		if($country) {
-			$country = lc($country);
-		} else {
-			require Net::Whois::IP;
-			Net::Whois::IP->import;
+		}
+		unless(defined $country) {
+			require Net::Whois::IANA;
+			Net::Whois::IANA->import;
 
-			$country = lc(Net::Whois::IP::whoisip_query($ip)->{'Country'});
-		};
+			# Translate country to first official language
+
+			my $iana = new Net::Whois::IANA;
+			$iana->whois_query(-ip => $ip);
+
+			$country = $iana->country();
+			if($country) {
+				$country = lc($country);
+			} else {
+				require Net::Whois::IP;
+				Net::Whois::IP->import;
+
+				$country = lc(Net::Whois::IP::whoisip_query($ip)->{'Country'});
+			}
+		}
 		if($country eq 'hk') {
 			# Hong Kong is no longer a country, but Whois thinks
 			# it is - try "whois 218.213.130.87"
@@ -250,6 +269,9 @@ sub _find_language {
 						last;
 					}
 				}
+			}
+			if($self->{_cache}) {
+				$country = $self->{_cache}->set($ip, $country, 600);
 			}
 		} else {
 			carp("Can't determine language from IP $ip, country $country");
@@ -307,11 +329,7 @@ L<http://search.cpan.org/dist/CGI-Lingua/>
 
 Copyright 2010 Nigel Horne.
 
-This program is free software; you can redistribute it and/or modify it
-under the terms of either: the GNU General Public License as published
-by the Free Software Foundation; or the Artistic License.
-
-See http://dev.perl.org/licenses/ for more information.
+This program is released under the following license: GPL
 
 
 =cut

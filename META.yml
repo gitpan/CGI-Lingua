@@ -1,10 +1,10 @@
 --- #YAML:1.0
 name:               CGI-Lingua
-version:            0.10
+version:            0.11
 abstract:           Natural language choices for CGI programs
 author:
     - Nigel Horne <njh@bandsman.co.uk>
-license:            perl
+license:            GPL
 distribution_type:  module
 configure_requires:
     ExtUtils::MakeMaker:  0

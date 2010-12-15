@@ -14,7 +14,7 @@
 #     ABSTRACT_FROM => q[lib/CGI/Lingua.pm]
 #     AUTHOR => q[Nigel Horne <njh@bandsman.co.uk>]
 #     BUILD_REQUIRES => {  }
-#     LICENSE => q[perl]
+#     LICENSE => q[GPL]
 #     NAME => q[CGI::Lingua]
 #     PL_FILES => {  }
 #     PREREQ_PM => { Test::More=>q[0], Locale::Language=>q[0], I18N::LangTags::Detect=>q[0], Net::Whois::IP=>q[0], Locale::Object::Country=>q[0], Data::Validate::IP=>q[0], Net::Whois::IANA=>q[0], I18N::AcceptLanguage=>q[0] }
@@ -59,11 +59,11 @@ DIRFILESEP = /
 DFSEP = $(DIRFILESEP)
 NAME = CGI::Lingua
 NAME_SYM = CGI_Lingua
-VERSION = 0.10
+VERSION = 0.11
 VERSION_MACRO = VERSION
-VERSION_SYM = 0_10
+VERSION_SYM = 0_11
 DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
-XS_VERSION = 0.10
+XS_VERSION = 0.11
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 INST_ARCHLIB = blib/arch
@@ -257,7 +257,7 @@ RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
 DIST_CP = best
 DIST_DEFAULT = tardist
 DISTNAME = CGI-Lingua
-DISTVNAME = CGI-Lingua-0.10
+DISTVNAME = CGI-Lingua-0.11
 
 
 # --- MakeMaker macro section:
@@ -478,11 +478,11 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) Generating META.yml
 	$(NOECHO) $(ECHO) '--- #YAML:1.0' > META_new.yml
 	$(NOECHO) $(ECHO) 'name:               CGI-Lingua' >> META_new.yml
-	$(NOECHO) $(ECHO) 'version:            0.10' >> META_new.yml
+	$(NOECHO) $(ECHO) 'version:            0.11' >> META_new.yml
 	$(NOECHO) $(ECHO) 'abstract:           Natural language choices for CGI programs' >> META_new.yml
 	$(NOECHO) $(ECHO) 'author:' >> META_new.yml
 	$(NOECHO) $(ECHO) '    - Nigel Horne <njh@bandsman.co.uk>' >> META_new.yml
-	$(NOECHO) $(ECHO) 'license:            perl' >> META_new.yml
+	$(NOECHO) $(ECHO) 'license:            GPL' >> META_new.yml
 	$(NOECHO) $(ECHO) 'distribution_type:  module' >> META_new.yml
 	$(NOECHO) $(ECHO) 'configure_requires:' >> META_new.yml
 	$(NOECHO) $(ECHO) '    ExtUtils::MakeMaker:  0' >> META_new.yml
@@ -795,7 +795,7 @@ testdb_static :: testdb_dynamic
 # --- MakeMaker ppd section:
 # Creates a PPD (Perl Package Description) for a binary distribution.
 ppd :
-	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="0.10">' > $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="0.11">' > $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <ABSTRACT>Natural language choices for CGI programs</ABSTRACT>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <AUTHOR>Nigel Horne &lt;njh@bandsman.co.uk&gt;</AUTHOR>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <IMPLEMENTATION>' >> $(DISTNAME).ppd

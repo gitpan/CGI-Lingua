@@ -1,5 +1,9 @@
 Revision history for CGI-Lingua
 
+0.11	Tue Dec 14 21:31:54 EST 2010
+	Added the cache option to new. This should speed up Whois lookups
+	Inadvertantly said that the Perl licence is used, in fact it's GPL
+
 0.10	Sat Dec 11 09:59:10 EST 2010
 	Tried to catch some places where language is set to undef. I can't
 		reproduce it so I can't be sure I've fixed it and I can't
