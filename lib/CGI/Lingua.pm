@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-$VERSION = '0.11';
+our $VERSION = '0.12';
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -14,11 +14,9 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.11
+Version 0.12
 
 =cut
-
-our $VERSION = '0.11';
 
 =head1 SYNOPSIS
 
@@ -84,6 +82,7 @@ sub new {
 		_rlanguage => undef,	# Requested language
 		_slanguage => undef,	# Language that the website should display
 		_sublanguage => undef,	# E.g. US for en-US if you want American English
+		_slanguage_code_alpha2 => undef, # E.g en, fr
 	};
 	bless $self, $class;
 
@@ -100,11 +99,22 @@ The language is the natural name e.g. 'English' or 'Japanese'.
 sub language {
 	my $self = shift;
 
-	if($self->{_slanguage}) {
-		return $self->{_slanguage};
+	unless($self->{_slanguage}) {
+		$self->_find_language();
 	}
-	$self->_find_language();
 	return $self->{_slanguage};
+}
+
+=head2 name
+
+Synonym for language, for compatibilty with Local::Object::Language
+
+=cut
+
+sub name {
+	my $self = shift;
+
+	return $self->language();
 }
 
 =head2 sublanguage
@@ -116,11 +126,25 @@ Tells the CGI what variant to use e.g. 'United Kingdom'.
 sub sublanguage {
 	my $self = shift;
 
-	if($self->{_sublanguage}) {
-		return $self->{_sublanguage};
+	unless($self->{_sublanguage}) {
+		$self->_find_language();
 	}
-	$self->_find_language();
 	return $self->{_sublanguage};
+}
+
+=head2 code_alpha2
+
+Gives the two character representation of the supported language, e.g. 'en'.
+
+=cut
+
+sub code_alpha2 {
+	my $self = shift;
+
+	unless($self->{_slanguage_code_alpha2}) {
+		$self->_find_language();
+	}
+	return $self->{_slanguage_code_alpha2};
 }
 
 =head2 requested_language
@@ -133,10 +157,9 @@ or not it is supported.
 sub requested_language {
 	my $self = shift;
 
-	if($self->{_rlanguage}) {
-		return $self->{_rlanguage};
+	unless($self->{_rlanguage}) {
+		$self->_find_language();
 	}
-	$self->_find_language();
 	return $self->{_rlanguage};
 }
 
@@ -161,6 +184,7 @@ sub _find_language {
 		if($l) {
 			$self->{_slanguage} = Locale::Language::code2language($l);
 			if($self->{_slanguage}) {
+				$self->{_slanguage_code_alpha2} = $l;
 				$self->{_rlanguage} = $self->{_slanguage};
 				return;
 			}
@@ -169,6 +193,7 @@ sub _find_language {
 				if($l) {
 					$self->{_slanguage} = Locale::Language::code2language($l);
 					if($self->{_slanguage}) {
+						$self->{_slanguage_code_alpha2} = $l;
 						$self->{_sublanguage} = Locale::Object::Country->new(code_alpha2 => $2)->name;
 						if($self->{_sublanguage}) {
 							$self->{_rlanguage} = "$self->{_slanguage} ($self->{_sublanguage})";
@@ -178,7 +203,7 @@ sub _find_language {
 				}
 		       }
 		}
-		if($self->{_slanguage}) {
+		# if($self->{_slanguage}) {
 			require I18N::LangTags::Detect;
 			$self->{_rlanguage} = I18N::LangTags::Detect::detect();
 			if($self->{_rlanguage}) {
@@ -196,7 +221,7 @@ sub _find_language {
 				}
 				return;
 			}
-		}
+		# }
 		$self->{_rlanguage} = 'Unknown';
 		$self->{_slanguage} = 'Unknown';
 	}
@@ -259,13 +284,15 @@ sub _find_language {
 
 				my $code = Locale::Language::language2code($self->{_rlanguage});
 				foreach (@{$self->{_supported}}) {
+					my $s;
 					if($_ =~ /^(.+)-.+/) {
-						$l = $1;
+						$s = $1;
 					} else {
-						$l = $_;
+						$s = $_;
 					}
-					if($code eq $l) {
+					if($code eq $s) {
 						$self->{_slanguage} = $self->{_rlanguage};
+						$self->{_slanguage_code_alpha2} = $l->code_alpha2;
 						last;
 					}
 				}
@@ -327,9 +354,9 @@ L<http://search.cpan.org/dist/CGI-Lingua/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010 Nigel Horne.
+Copyright 2010-2011 Nigel Horne.
 
-This program is released under the following license: GPL
+This program is released under the following licence: GPL
 
 
 =cut

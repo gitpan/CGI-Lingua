@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 25;
+use Test::More tests => 26;
 
 BEGIN {
 	use_ok('CGI::Lingua');
@@ -63,7 +63,8 @@ LANGUAGES: {
 	if($l->language() ne 'English') {
 		diag('Expected English got "' . $l->requested_language() . '"');
 	}
-	ok($l->language() eq 'English');
+	ok($l->name() eq 'English');
+	ok($l->code_alpha2() eq 'en');
 	ok(defined $l->requested_language());
 	if($l->requested_language() !~ /English/) {
 		diag('Expected English requested language, got "' . $l->requested_language() . '"');
