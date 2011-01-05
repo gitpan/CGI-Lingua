@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               CGI-Lingua
-version:            0.12
+version:            0.13
 abstract:           Natural language choices for CGI programs
 author:
     - Nigel Horne <njh@bandsman.co.uk>
@@ -19,6 +19,7 @@ requires:
     Net::Whois::IANA:     0
     Net::Whois::IP:       0
     Test::More:           0
+    Test::Requires:       0
 no_index:
     directory:
         - t

@@ -13,6 +13,7 @@ WriteMakefile(
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More' => 0,
+	'Test::Requires' => 0,
 	'Locale::Object::Country' => 0,
 	'I18N::AcceptLanguage' => 0,
 	'Locale::Language' => 0,

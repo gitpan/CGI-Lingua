@@ -5,6 +5,12 @@ use warnings;
 use Test::More tests => 12;
 use CGI::Lingua;
 
+# Work around for systems with broken Module::Load
+# http://www.cpantesters.org/cpan/report/eae7b808-172d-11e0-a672-41e7f2486b6f
+use Test::Requires {
+	'Module::Load::Conditional' => 0.38
+};
+
 HONG_KONG: {
 	my $cache;
 
