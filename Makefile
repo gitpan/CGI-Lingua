@@ -27,27 +27,27 @@
 
 # --- MakeMaker const_config section:
 
-# These definitions are from config.sh (via /usr/lib/perl/5.10/Config.pm).
+# These definitions are from config.sh (via /usr/lib/perl5/Config.pm).
 # They may have been overridden via Makefile.PL or on the command line.
 AR = ar
-CC = cc
+CC = gcc
 CCCDLFLAGS = -fPIC
-CCDLFLAGS = -Wl,-E
+CCDLFLAGS = -Wl,--enable-new-dtags -Wl,-rpath,/usr/lib/perl5/CORE
 DLEXT = so
 DLSRC = dl_dlopen.xs
 EXE_EXT = 
 FULL_AR = /usr/bin/ar
-LD = cc
-LDDLFLAGS = -shared -O2 -g -L/usr/local/lib -fstack-protector
+LD = gcc
+LDDLFLAGS = -shared -O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m32 -march=i686 -mtune=atom -fasynchronous-unwind-tables -L/usr/local/lib
 LDFLAGS =  -fstack-protector -L/usr/local/lib
-LIBC = /lib/libc-2.11.2.so
+LIBC = /lib/libc-2.12.90.so
 LIB_EXT = .a
 OBJ_EXT = .o
 OSNAME = linux
-OSVERS = 2.6.32-5-amd64
+OSVERS = 2.6.32-72.el6.bz634452.x86_64
 RANLIB = :
-SITELIBEXP = /usr/local/share/perl/5.10.1
-SITEARCHEXP = /usr/local/lib/perl/5.10.1
+SITELIBEXP = /usr/local/share/perl5
+SITEARCHEXP = /usr/local/lib/perl5
 SO = so
 VENDORARCHEXP = /usr/lib/perl5
 VENDORLIBEXP = /usr/share/perl5
@@ -59,11 +59,11 @@ DIRFILESEP = /
 DFSEP = $(DIRFILESEP)
 NAME = CGI::Lingua
 NAME_SYM = CGI_Lingua
-VERSION = 0.13
+VERSION = 0.14
 VERSION_MACRO = VERSION
-VERSION_SYM = 0_13
+VERSION_SYM = 0_14
 DEFINE_VERSION = -D$(VERSION_MACRO)=\"$(VERSION)\"
-XS_VERSION = 0.13
+XS_VERSION = 0.14
 XS_VERSION_MACRO = XS_VERSION
 XS_DEFINE_VERSION = -D$(XS_VERSION_MACRO)=\"$(XS_VERSION)\"
 INST_ARCHLIB = blib/arch
@@ -72,7 +72,7 @@ INST_BIN = blib/bin
 INST_LIB = blib/lib
 INST_MAN1DIR = blib/man1
 INST_MAN3DIR = blib/man3
-MAN1EXT = 1p
+MAN1EXT = 1
 MAN3EXT = 3pm
 INSTALLDIRS = site
 DESTDIR = 
@@ -80,15 +80,15 @@ PREFIX = $(SITEPREFIX)
 PERLPREFIX = /usr
 SITEPREFIX = /usr/local
 VENDORPREFIX = /usr
-INSTALLPRIVLIB = /usr/share/perl/5.10
+INSTALLPRIVLIB = /usr/share/perl5
 DESTINSTALLPRIVLIB = $(DESTDIR)$(INSTALLPRIVLIB)
-INSTALLSITELIB = /usr/local/share/perl/5.10.1
+INSTALLSITELIB = /usr/local/share/perl5
 DESTINSTALLSITELIB = $(DESTDIR)$(INSTALLSITELIB)
 INSTALLVENDORLIB = /usr/share/perl5
 DESTINSTALLVENDORLIB = $(DESTDIR)$(INSTALLVENDORLIB)
-INSTALLARCHLIB = /usr/lib/perl/5.10
+INSTALLARCHLIB = /usr/lib/perl5
 DESTINSTALLARCHLIB = $(DESTDIR)$(INSTALLARCHLIB)
-INSTALLSITEARCH = /usr/local/lib/perl/5.10.1
+INSTALLSITEARCH = /usr/local/lib/perl5
 DESTINSTALLSITEARCH = $(DESTDIR)$(INSTALLSITEARCH)
 INSTALLVENDORARCH = /usr/lib/perl5
 DESTINSTALLVENDORARCH = $(DESTDIR)$(INSTALLVENDORARCH)
@@ -106,24 +106,24 @@ INSTALLVENDORSCRIPT = /usr/bin
 DESTINSTALLVENDORSCRIPT = $(DESTDIR)$(INSTALLVENDORSCRIPT)
 INSTALLMAN1DIR = /usr/share/man/man1
 DESTINSTALLMAN1DIR = $(DESTDIR)$(INSTALLMAN1DIR)
-INSTALLSITEMAN1DIR = /usr/local/man/man1
+INSTALLSITEMAN1DIR = /usr/local/share/man/man1
 DESTINSTALLSITEMAN1DIR = $(DESTDIR)$(INSTALLSITEMAN1DIR)
 INSTALLVENDORMAN1DIR = /usr/share/man/man1
 DESTINSTALLVENDORMAN1DIR = $(DESTDIR)$(INSTALLVENDORMAN1DIR)
 INSTALLMAN3DIR = /usr/share/man/man3
 DESTINSTALLMAN3DIR = $(DESTDIR)$(INSTALLMAN3DIR)
-INSTALLSITEMAN3DIR = /usr/local/man/man3
+INSTALLSITEMAN3DIR = /usr/local/share/man/man3
 DESTINSTALLSITEMAN3DIR = $(DESTDIR)$(INSTALLSITEMAN3DIR)
 INSTALLVENDORMAN3DIR = /usr/share/man/man3
 DESTINSTALLVENDORMAN3DIR = $(DESTDIR)$(INSTALLVENDORMAN3DIR)
-PERL_LIB = /usr/share/perl/5.10
-PERL_ARCHLIB = /usr/lib/perl/5.10
+PERL_LIB = /usr/share/perl5
+PERL_ARCHLIB = /usr/lib/perl5
 LIBPERL_A = libperl.a
 FIRST_MAKEFILE = Makefile
 MAKEFILE_OLD = Makefile.old
 MAKE_APERL_FILE = Makefile.aperl
 PERLMAINCC = $(CC)
-PERL_INC = /usr/lib/perl/5.10/CORE
+PERL_INC = /usr/lib/perl5/CORE
 PERL = /usr/bin/perl
 FULLPERL = /usr/bin/perl
 ABSPERL = $(PERL)
@@ -138,7 +138,7 @@ PERM_DIR = 755
 PERM_RW = 644
 PERM_RWX = 755
 
-MAKEMAKER   = /usr/local/share/perl/5.10.1/ExtUtils/MakeMaker.pm
+MAKEMAKER   = /usr/share/perl5/ExtUtils/MakeMaker.pm
 MM_VERSION  = 6.56
 MM_REVISION = 65600
 
@@ -257,7 +257,7 @@ RCS_LABEL = rcs -Nv$(VERSION_SYM): -q
 DIST_CP = best
 DIST_DEFAULT = tardist
 DISTNAME = CGI-Lingua
-DISTVNAME = CGI-Lingua-0.13
+DISTVNAME = CGI-Lingua-0.14
 
 
 # --- MakeMaker macro section:
@@ -478,7 +478,7 @@ metafile : create_distdir
 	$(NOECHO) $(ECHO) Generating META.yml
 	$(NOECHO) $(ECHO) '--- #YAML:1.0' > META_new.yml
 	$(NOECHO) $(ECHO) 'name:               CGI-Lingua' >> META_new.yml
-	$(NOECHO) $(ECHO) 'version:            0.13' >> META_new.yml
+	$(NOECHO) $(ECHO) 'version:            0.14' >> META_new.yml
 	$(NOECHO) $(ECHO) 'abstract:           Natural language choices for CGI programs' >> META_new.yml
 	$(NOECHO) $(ECHO) 'author:' >> META_new.yml
 	$(NOECHO) $(ECHO) '    - Nigel Horne <njh@bandsman.co.uk>' >> META_new.yml
@@ -796,7 +796,7 @@ testdb_static :: testdb_dynamic
 # --- MakeMaker ppd section:
 # Creates a PPD (Perl Package Description) for a binary distribution.
 ppd :
-	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="0.13">' > $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '<SOFTPKG NAME="$(DISTNAME)" VERSION="0.14">' > $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <ABSTRACT>Natural language choices for CGI programs</ABSTRACT>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <AUTHOR>Nigel Horne &lt;njh@bandsman.co.uk&gt;</AUTHOR>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    <IMPLEMENTATION>' >> $(DISTNAME).ppd
@@ -809,7 +809,7 @@ ppd :
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Net::Whois::IP" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Test::More" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <REQUIRE NAME="Test::Requires" />' >> $(DISTNAME).ppd
-	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="x86_64-linux-gnu-thread-multi-5.10" />' >> $(DISTNAME).ppd
+	$(NOECHO) $(ECHO) '        <ARCHITECTURE NAME="i386-linux-thread-multi-5.12" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '        <CODEBASE HREF="" />' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '    </IMPLEMENTATION>' >> $(DISTNAME).ppd
 	$(NOECHO) $(ECHO) '</SOFTPKG>' >> $(DISTNAME).ppd

@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -14,7 +14,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.13
+Version 0.14
 
 =cut
 
@@ -203,7 +203,7 @@ sub _find_language {
 				}
 		       }
 		}
-		# if($self->{_slanguage}) {
+		if($self->{_slanguage}) {
 			require I18N::LangTags::Detect;
 			$self->{_rlanguage} = I18N::LangTags::Detect::detect();
 			if($self->{_rlanguage}) {
@@ -221,7 +221,7 @@ sub _find_language {
 				}
 				return;
 			}
-		# }
+		}
 		$self->{_rlanguage} = 'Unknown';
 		$self->{_slanguage} = 'Unknown';
 	}

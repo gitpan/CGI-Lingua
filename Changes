@@ -1,5 +1,8 @@
 Revision history for CGI-Lingua
 
+0.14	Mon Jan 10 20:02:41 EST 2011
+	Sometimes language would return 'undefined'
+
 0.13	Wed Jan  5 09:42:05 GMT 2011
 	Attempt to fix http://www.cpantesters.org/cpan/report/eae7b808-172d-11e0-a672-41e7f2486b6f, though I can't reproduce it
 
