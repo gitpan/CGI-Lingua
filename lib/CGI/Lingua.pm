@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -14,7 +14,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.14
+Version 0.15
 
 =cut
 
@@ -83,6 +83,7 @@ sub new {
 		_slanguage => undef,	# Language that the website should display
 		_sublanguage => undef,	# E.g. US for en-US if you want American English
 		_slanguage_code_alpha2 => undef, # E.g en, fr
+		_country => undef,	# Two letters, e.g. gb
 	};
 	bless $self, $class;
 
@@ -227,52 +228,10 @@ sub _find_language {
 	}
 
 	# The client hasn't said which to use, guess from their IP address
-	# TODO: Whois look ups can be slow - add cache?
-	if($ENV{'REMOTE_ADDR'}) {
-		my $ip = $ENV{'REMOTE_ADDR'};
-
-		unless($ip) {
-			return;
-		}
-		require Data::Validate::IP;
-		Data::Validate::IP->import;
-
-		unless(is_ipv4($ip)) {
-			carp "Unexpected IP $ip\n";
-			return;
-		}
-
-		my $country;
-
-		if($self->{_cache}) {
-			$country = $self->{_cache}->get($ip);
-
-		}
-		unless(defined $country) {
-			require Net::Whois::IANA;
-			Net::Whois::IANA->import;
-
-			# Translate country to first official language
-
-			my $iana = new Net::Whois::IANA;
-			$iana->whois_query(-ip => $ip);
-
-			$country = $iana->country();
-			if($country) {
-				$country = lc($country);
-			} else {
-				require Net::Whois::IP;
-				Net::Whois::IP->import;
-
-				$country = lc(Net::Whois::IP::whoisip_query($ip)->{'Country'});
-			}
-		}
-		if($country eq 'hk') {
-			# Hong Kong is no longer a country, but Whois thinks
-			# it is - try "whois 218.213.130.87"
-			$country = 'cn';
-		}
+	my $country = $self->country();
+	if(defined($country)) {
 		my $l = (Locale::Object::Country->new(code_alpha2 => $country)->languages_official)[0];
+		my $ip = $ENV{'REMOTE_ADDR'};
 		if($l && $l->name) {
 			$self->{_rlanguage} = $l->name;
 			unless((exists($self->{_slanguage})) && ($self->{_slanguage} ne 'Unknown')) {
@@ -297,13 +256,71 @@ sub _find_language {
 					}
 				}
 			}
-			if($self->{_cache}) {
+			if($self->{_cache} && defined($ip)) {
 				$country = $self->{_cache}->set($ip, $country, 600);
 			}
-		} else {
+		} elsif(defined($ip)) {
 			carp("Can't determine language from IP $ip, country $country");
 		}
 	}
+}
+
+=head2 country
+
+Returns the country of the remote end.  This only does a Whois lookup, but
+it is useful to have this method so that it can use the cache.
+
+=cut
+
+sub country {
+	my $self = shift;
+
+	if($self->{_country}) {
+		return $self->{_country};
+	}
+
+	my $ip = $ENV{'REMOTE_ADDR'};
+
+	unless($ip) {
+		return();
+	}
+	require Data::Validate::IP;
+	Data::Validate::IP->import;
+
+	unless(is_ipv4($ip)) {
+		carp "Unexpected IP $ip\n";
+		return()
+	}
+
+	if($self->{_cache}) {
+		$self->{_country} = $self->{_cache}->get($ip);
+	}
+	unless(defined $self->{_country}) {
+		require Net::Whois::IANA;
+		Net::Whois::IANA->import;
+
+		# Translate country to first official language
+
+		my $iana = new Net::Whois::IANA;
+		$iana->whois_query(-ip => $ip);
+
+		$self->{_country} = $iana->country();
+		if($self->{_country}) {
+			$self->{_country} = lc($self->{_country});
+		} else {
+			require Net::Whois::IP;
+			Net::Whois::IP->import;
+
+			$self->{_country} = lc(Net::Whois::IP::whoisip_query($ip)->{'Country'});
+		}
+	}
+	if($self->{_country} eq 'hk') {
+		# Hong Kong is no longer a country, but Whois thinks
+		# it is - try "whois 218.213.130.87"
+		$self->{_country} = 'cn';
+	}
+
+	return $self->{_country};
 }
 
 =head1 AUTHOR

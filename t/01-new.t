@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 26;
+use Test::More tests => 27;
 
 BEGIN {
 	use_ok('CGI::Lingua');
@@ -70,4 +70,5 @@ LANGUAGES: {
 		diag('Expected English requested language, got "' . $l->requested_language() . '"');
 	}
 	ok($l->requested_language() =~ /English/);
+	ok($l->country() eq 'gb');
 }

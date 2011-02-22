@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 12;
+use Test::More tests => 14;
 use CGI::Lingua;
 
 # Work around for systems with broken Module::Load
@@ -48,6 +48,7 @@ HONG_KONG: {
 	ok($l->requested_language() eq 'Chinese');
 	ok(defined $l->language());
 	ok($l->language() eq 'Unknown');
+	ok($l->country() eq 'cn');
 
 	$l = CGI::Lingua->new(supported => ['zh'], cache => $cache);
 	ok(defined $l);
@@ -56,4 +57,5 @@ HONG_KONG: {
 	ok($l->requested_language() eq 'Chinese');
 	ok(defined $l->language());
 	ok($l->language() eq 'Chinese');
+	ok($l->country() eq 'cn');
 }

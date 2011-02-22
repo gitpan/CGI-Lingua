@@ -1,15 +1,14 @@
-README
-MANIFEST
-Makefile.PL
-lib/CGI/Lingua.pm
 Changes
-Makefile
 ignore.txt
-t/pod.t
-t/manifest.t
-t/boilerplate.t
+lib/CGI/Lingua.pm
+Makefile.PL
+MANIFEST
+META.yml			Module meta-data (added by MakeMaker)
+README
 t/00-load.t
 t/01-new.t
+t/boilerplate.t
 t/hk.t
+t/manifest.t
 t/pod-coverage.t
-META.yml                                 Module meta-data (added by MakeMaker)
+t/pod.t

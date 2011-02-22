@@ -1,5 +1,8 @@
 Revision history for CGI-Lingua
 
+0.15	Mon Feb 21 19:14:45 EST 2011
+	Added country()
+
 0.14	Mon Jan 10 20:02:41 EST 2011
 	Sometimes language would return 'undefined'
 
