@@ -1,5 +1,10 @@
 Revision history for CGI-Lingua
 
+0.16	Sat May 28 16:38:58 EDT 2011
+	Give an example of the use of the country method
+	Better unique names for the cache keys to avoid clashes
+	Handle unrecognised requested language
+
 0.15	Mon Feb 21 19:14:45 EST 2011
 	Added country()
 

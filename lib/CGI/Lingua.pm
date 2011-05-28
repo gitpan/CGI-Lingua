@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -14,7 +14,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.15
+Version 0.16
 
 =cut
 
@@ -35,6 +35,14 @@ tells the application which language the user would like to use.
     } else {	# $language eq 'Unknown'
 	my $rl = $l->requested_language();
 	print "<P>Sorry for now this page is not available in $rl.</P>";
+    }
+    my $c = $l->country();
+    if ($c eq 'us') {
+      # print contact details in the US
+    } elsif ($c eq 'ca') {
+      # print contact details in Canada
+    } else {
+      # print worldwide contact details
     }
 
     ...
@@ -108,7 +116,7 @@ sub language {
 
 =head2 name
 
-Synonym for language, for compatibilty with Local::Object::Language
+Synonym for language, for compatibility with Local::Object::Language
 
 =cut
 
@@ -242,6 +250,9 @@ sub _find_language {
 				Locale::Language->import;
 
 				my $code = Locale::Language::language2code($self->{_rlanguage});
+				unless($code) {
+					carp('Can\'t determine code from requested language ' . $self->{_rlanguage});
+				}
 				foreach (@{$self->{_supported}}) {
 					my $s;
 					if($_ =~ /^(.+)-.+/) {
@@ -257,7 +268,7 @@ sub _find_language {
 				}
 			}
 			if($self->{_cache} && defined($ip)) {
-				$country = $self->{_cache}->set($ip, $country, 600);
+				$country = $self->{_cache}->set("Lingua $ip", $country, 600);
 			}
 		} elsif(defined($ip)) {
 			carp("Can't determine language from IP $ip, country $country");
@@ -293,7 +304,7 @@ sub country {
 	}
 
 	if($self->{_cache}) {
-		$self->{_country} = $self->{_cache}->get($ip);
+		$self->{_country} = $self->{_cache}->get("Lingua $ip");
 	}
 	unless(defined $self->{_country}) {
 		require Net::Whois::IANA;
