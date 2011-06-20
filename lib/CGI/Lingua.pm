@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -14,7 +14,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.16
+Version 0.17
 
 =cut
 
@@ -238,6 +238,8 @@ sub _find_language {
 	# The client hasn't said which to use, guess from their IP address
 	my $country = $self->country();
 	if(defined($country)) {
+		# Determine the first official language of the country
+
 		my $l = (Locale::Object::Country->new(code_alpha2 => $country)->languages_official)[0];
 		my $ip = $ENV{'REMOTE_ADDR'};
 		if($l && $l->name) {
@@ -251,7 +253,17 @@ sub _find_language {
 
 				my $code = Locale::Language::language2code($self->{_rlanguage});
 				unless($code) {
-					carp('Can\'t determine code from requested language ' . $self->{_rlanguage});
+					$code = Locale::Language::language2code($ENV{'HTTP_ACCEPT_LANGUAGE'});
+					unless($code) {
+						# If language is Norwegian (Nynorsk)
+						# lookup Norwegian
+						if($self->{_rlanguage} =~ /(.+)\s\(.+/) {
+							$code = Locale::Language::language2code($1);
+						}
+						unless($code) {
+							carp('Can\'t determine code from requested language ' . $self->{_rlanguage});
+						}
+					}
 				}
 				foreach (@{$self->{_supported}}) {
 					my $s;
@@ -306,25 +318,32 @@ sub country {
 	if($self->{_cache}) {
 		$self->{_country} = $self->{_cache}->get("Lingua $ip");
 	}
+
 	unless(defined $self->{_country}) {
-		require Net::Whois::IANA;
-		Net::Whois::IANA->import;
+		require Net::Whois::IP;
+		Net::Whois::IP->import;
 
-		# Translate country to first official language
+		my $whois = Net::Whois::IP::whoisip_query($ip);
+		if(defined($whois->{Country})) {
+			$self->{_country} = $whois->{Country};
+		} elsif(defined($whois->{country})) {
+			$self->{_country} = $whois->{country};
+		}
 
-		my $iana = new Net::Whois::IANA;
-		$iana->whois_query(-ip => $ip);
+		unless($self->{_country}) {
+			require Net::Whois::IANA;
+			Net::Whois::IANA->import;
 
-		$self->{_country} = $iana->country();
+			my $iana = new Net::Whois::IANA;
+			$iana->whois_query(-ip => $ip);
+
+			$self->{_country} = $iana->country();
+		}
 		if($self->{_country}) {
 			$self->{_country} = lc($self->{_country});
-		} else {
-			require Net::Whois::IP;
-			Net::Whois::IP->import;
-
-			$self->{_country} = lc(Net::Whois::IP::whoisip_query($ip)->{'Country'});
 		}
 	}
+
 	if($self->{_country} eq 'hk') {
 		# Hong Kong is no longer a country, but Whois thinks
 		# it is - try "whois 218.213.130.87"

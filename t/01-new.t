@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 27;
+use Test::More tests => 35;
 
 BEGIN {
 	use_ok('CGI::Lingua');
@@ -31,7 +31,16 @@ LANGUAGES: {
 	ok($l->language() eq 'Unknown');
 	ok($l->requested_language() eq 'Unknown');
 
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = '';
+        $ENV{'REMOTE_ADDR'} = '66.249.67.232';	# Google
+	$l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
+	ok(defined $l);
+	ok($l->isa('CGI::Lingua'));
+	ok($l->language() eq 'English');
+	ok($l->requested_language() eq 'English');
+
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-gb,en;q=0.5';
+        delete $ENV{'REMOTE_ADDR'};
 	$l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
@@ -71,4 +80,12 @@ LANGUAGES: {
 	}
 	ok($l->requested_language() =~ /English/);
 	ok($l->country() eq 'gb');
+
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'no';
+        $ENV{'REMOTE_ADDR'} = '158.38.152.238';
+	$l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
+	ok(defined $l);
+	ok($l->isa('CGI::Lingua'));
+	ok($l->language() eq 'Unknown');
+	ok(defined $l->requested_language());
 }

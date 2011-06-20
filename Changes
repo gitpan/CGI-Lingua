@@ -1,5 +1,11 @@
 Revision history for CGI-Lingua
 
+0.17	Mon Jun 20 10:24:00 EDT 2011
+	Added test for empty HTTP_ACCEPT_LANGUAGE with IP given
+	Prefer Net::Whois::IP over Net::Whois::IANA
+	Fix search where IP address gives lanauge such as Norwegian (Nynorsk),
+		in which case we now search for Norwegian
+
 0.16	Sat May 28 16:38:58 EDT 2011
 	Give an example of the use of the country method
 	Better unique names for the cache keys to avoid clashes
