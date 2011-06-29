@@ -82,7 +82,7 @@ LANGUAGES: {
 	ok($l->country() eq 'gb');
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'no';
-        $ENV{'REMOTE_ADDR'} = '158.38.152.238';
+        $ENV{'REMOTE_ADDR'} = '212.125.194.122';
 	$l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));

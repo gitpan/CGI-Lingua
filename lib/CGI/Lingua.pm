@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -14,13 +14,14 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.17
+Version 0.18
 
 =cut
 
 =head1 SYNOPSIS
 
-CGI::Lingua provides a simple basis to determine which language to display a website in.
+No longer does your website need to be in English only.
+CGI::Lingua provides a simple basis to determine which language to display a website.
 The website tells CGI::Lingua which languages it supports. Based on that list CGI::Lingua
 tells the application which language the user would like to use.
 
