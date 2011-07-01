@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 35;
+use Test::More tests => 65;
 
 BEGIN {
 	use_ok('CGI::Lingua');
@@ -45,6 +45,7 @@ LANGUAGES: {
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
 	ok($l->language() eq 'English');
+	ok($l->sublanguage() eq 'United Kingdom');
 	ok(defined $l->requested_language());
 	ok($l->requested_language() eq 'English (United Kingdom)');
 
@@ -69,11 +70,11 @@ LANGUAGES: {
 	$l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
+	ok($l->code_alpha2() eq 'en');
 	if($l->language() ne 'English') {
 		diag('Expected English got "' . $l->requested_language() . '"');
 	}
 	ok($l->name() eq 'English');
-	ok($l->code_alpha2() eq 'en');
 	ok(defined $l->requested_language());
 	if($l->requested_language() !~ /English/) {
 		diag('Expected English requested language, got "' . $l->requested_language() . '"');
@@ -81,11 +82,69 @@ LANGUAGES: {
 	ok($l->requested_language() =~ /English/);
 	ok($l->country() eq 'gb');
 
+        delete($ENV{'REMOTE_ADDR'});
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en';
+	$l = new_ok('CGI::Lingua' => [
+		supported => ['en', 'en-gb', 'fr']
+	]);
+	ok($l->language() eq 'English');
+	ok(defined($l->requested_language()));
+	ok($l->requested_language() eq 'English');
+	ok(!defined($l->sublanguage()));
+	ok($l->code_alpha2() eq 'en');
+	ok(!defined($l->country()));
+
+	# Ask for US English on a site serving only British English should still
+	# say that English is the language
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-us';
+	$l = new_ok('CGI::Lingua' => [
+		supported => ['en-gb', 'fr']
+	]);
+	ok($l->language() eq 'English');
+	ok(defined($l->requested_language()));
+	ok($l->requested_language() eq 'English (United States)');
+	ok($l->sublanguage() eq 'United States');
+	ok($l->code_alpha2() eq 'en');
+	ok(!defined($l->country()));
+
+	# Ask for US English on a site serving British English and English
+	# should say that English is the language
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-us';
+	$l = new_ok('CGI::Lingua' => [
+		supported => ['en', 'en-gb', 'fr']
+	]);
+	ok($l->language() eq 'English');
+	ok(defined($l->requested_language()));
+	ok($l->requested_language() eq 'English');
+	ok(!defined($l->sublanguage()));
+	ok($l->code_alpha2() eq 'en');
+	ok(!defined($l->country()));
+
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'no';
         $ENV{'REMOTE_ADDR'} = '212.125.194.122';
 	$l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
 	ok($l->language() eq 'Unknown');
-	ok(defined $l->requested_language());
+	ok(defined($l->requested_language()));
+	ok(!defined($l->code_alpha2()));
+	ok($l->country() eq 'no');
+
+	delete($ENV{'HTTP_ACCEPT_LANGUAGE'});
+        $ENV{'REMOTE_ADDR'} = 'a.b.c.d';
+	$l = new_ok('CGI::Lingua' => [
+		supported => ['en', 'fr']
+	]);
+	local $SIG{__WARN__} = sub { die $_[0] };
+	eval { $l->language() };
+	ok($@ =~ /Unexpected IPv4 a.b.c.d/);
+	ok(defined($l->requested_language()));
+	eval { $l->code_alpha2() };
+	ok($@ =~ /Unexpected IPv4 a.b.c.d/);
+
+        $ENV{'REMOTE_ADDR'} = '255.255.255.255';
+	$l = new_ok('CGI::Lingua' => [
+		supported => ['de', 'fr']
+	]);
+	ok($l->language() eq 'Unknown');
 }

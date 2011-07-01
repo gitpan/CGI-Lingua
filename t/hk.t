@@ -26,7 +26,7 @@ HONG_KONG: {
 	} else {
 		diag("Using CHI $CHI::VERSION");
 		my $hash = {};
-		$cache = (CHI->new(driver => 'Memory', datastore => $hash));
+		$cache = CHI->new(driver => 'Memory', datastore => $hash);
 	}
 
 	# Stop I18N::LangTags::Detect from detecting something

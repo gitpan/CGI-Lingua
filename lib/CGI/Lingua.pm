@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.18';
+our $VERSION = '0.19';
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -14,7 +14,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.18
+Version 0.19
 
 =cut
 
@@ -63,8 +63,8 @@ Creates a CGI::Lingua object.
 Takes one mandatory parameter: a list of languages, in RFC-1766 format, that the website supports.
 Language codes are of the form primary-code [ - country-code ] e.g. 'en', 'en-gb' for English and British English respectively.
 
-For a list of primary-codes refer to ISO-936.
-For a list of country-codes refer to ISO-3166.
+For a list of primary-codes refer to ISO-639 (e.g. 'en' for English).
+For a list of country-codes refer to ISO-3166 (e.g. 'gb' for United Kingdom).
 
     # We support English, French, British and American English, in that order
     my $l = CGI::Lingua(supported => [('en', 'fr', 'en-gb', en-us')]);
@@ -104,6 +104,23 @@ sub new {
 Tells the CGI application what language to display its messages in.
 The language is the natural name e.g. 'English' or 'Japanese'.
 
+Sublanguages are handled sensibly, so that if a client requests U.S. English
+on a site that only serves Britsh English, language() will return 'English'.
+
+    # Site supports English and British English
+    my $l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb']);
+
+    # If the browser requests 'en-us' , then language will be 'English' and
+    # sublanguage will be 'United States'
+
+    # Site supports British English only
+    my $l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb']);
+
+    # If the browser requests 'en-us' , then language will be 'English' and
+    # sublanguage will be undefined
+
+The above behaviour may streem strange, but it ensures that sites behave
+sensibly.
 =cut
 
 sub language {
@@ -191,6 +208,14 @@ sub _find_language {
 		Locale::Language->import;
 
 		my $l = I18N::AcceptLanguage->new()->accepts($ENV{'HTTP_ACCEPT_LANGUAGE'}, $self->{_supported});
+		if((!$l) && ($ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /(.+)-.+/)) {
+			# Fall back position, e,g. we want US English on a site
+			# only giving British English, so allow it as English.
+			# The calling program can detect that it's not the
+			# wanted flavour of English by looking at
+			# requested_language
+			$l = I18N::AcceptLanguage->new()->accepts($1, $self->{_supported});
+		}
 		if($l) {
 			$self->{_slanguage} = Locale::Language::code2language($l);
 			if($self->{_slanguage}) {
@@ -199,23 +224,40 @@ sub _find_language {
 				return;
 			}
 			if($l =~ /(.+)-(.+)/) {
-				$l = I18N::AcceptLanguage->new()->accepts($1, $self->{_supported});
-				if($l) {
-					$self->{_slanguage} = Locale::Language::code2language($l);
+				my $alpha2 = $1;
+				my $variety = $2;
+				my $accepts = I18N::AcceptLanguage->new()->accepts($alpha2, $self->{_supported});
+
+
+				if($accepts) {
+					$self->{_slanguage} = Locale::Language::code2language($accepts);
+					$self->{_sublanguage} = Locale::Object::Country->new(code_alpha2 => $variety)->name;
 					if($self->{_slanguage}) {
-						$self->{_slanguage_code_alpha2} = $l;
-						$self->{_sublanguage} = Locale::Object::Country->new(code_alpha2 => $2)->name;
+						$self->{_slanguage_code_alpha2} = $accepts;
 						if($self->{_sublanguage}) {
 							$self->{_rlanguage} = "$self->{_slanguage} ($self->{_sublanguage})";
 						}
 						return;
 					}
 				}
+				my $lang = Locale::Language::code2language($alpha2);
+				unless($lang) {
+					$lang = $1;
+				}
+				$self->{_rlanguage} = $lang;
+				$self->_get_closest($alpha2, $alpha2);
+				if($self->{_sublanguage}) {
+					$ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /(.+)-(.+)/;
+					$self->{_sublanguage} = Locale::Object::Country->new(code_alpha2 => $2)->name;
+					$self->{_rlanguage} = "$self->{_slanguage} ($self->{_sublanguage})";
+				}
 		       }
 		}
 		if($self->{_slanguage}) {
-			require I18N::LangTags::Detect;
-			$self->{_rlanguage} = I18N::LangTags::Detect::detect();
+			if($self->{_rlanguage} eq 'Unknown') {
+				require I18N::LangTags::Detect;
+				$self->{_rlanguage} = I18N::LangTags::Detect::detect();
+			}
 			if($self->{_rlanguage}) {
 				my $l = Locale::Language::code2language($self->{_rlanguage});
 				if($l) {
@@ -266,25 +308,34 @@ sub _find_language {
 						}
 					}
 				}
-				foreach (@{$self->{_supported}}) {
-					my $s;
-					if($_ =~ /^(.+)-.+/) {
-						$s = $1;
-					} else {
-						$s = $_;
-					}
-					if($code eq $s) {
-						$self->{_slanguage} = $self->{_rlanguage};
-						$self->{_slanguage_code_alpha2} = $l->code_alpha2;
-						last;
-					}
-				}
+				$self->_get_closest($code, $l->code_alpha2);
 			}
 			if($self->{_cache} && defined($ip)) {
 				$country = $self->{_cache}->set("Lingua $ip", $country, 600);
 			}
 		} elsif(defined($ip)) {
 			carp("Can't determine language from IP $ip, country $country");
+		}
+	}
+}
+
+# Try our very best to give the right country - if they ask for en-us and
+# we only have en-gb then give it to them
+
+sub _get_closest {
+	my ($self, $language_string, $alpha2) = @_;
+
+	foreach (@{$self->{_supported}}) {
+		my $s;
+		if(/^(.+)-.+/) {
+			$s = $1;
+		} else {
+			$s = $_;
+		}
+		if($language_string eq $s) {
+			$self->{_slanguage} = $self->{_rlanguage};
+			$self->{_slanguage_code_alpha2} = $alpha2;
+			last;
 		}
 	}
 }
@@ -312,8 +363,8 @@ sub country {
 	Data::Validate::IP->import;
 
 	unless(is_ipv4($ip)) {
-		carp "Unexpected IP $ip\n";
-		return()
+		carp "Unexpected IPv4 $ip\n";
+		return();
 	}
 
 	if($self->{_cache}) {

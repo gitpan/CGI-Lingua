@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               CGI-Lingua
-version:            0.18
+version:            0.19
 abstract:           Natural language choices for CGI programs
 author:
     - Nigel Horne <njh@bandsman.co.uk>
