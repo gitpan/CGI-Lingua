@@ -6,11 +6,12 @@ MANIFEST
 META.yml			Module meta-data (added by MakeMaker)
 README
 t/00-load.t
-t/language.t
-t/boilerplate.t
+t/boiler.t
+t/coverage.t
 t/hk.t
 t/kwalitee.t
+t/language.t
 t/manifest.t
 t/pod-cm.t
-t/pod-coverage.t
 t/pod.t
+t/port.t

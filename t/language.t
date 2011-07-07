@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 65;
+use Test::More tests => 73;
 
 BEGIN {
 	use_ok('CGI::Lingua');
@@ -147,4 +147,21 @@ LANGUAGES: {
 		supported => ['de', 'fr']
 	]);
 	ok($l->language() eq 'Unknown');
+
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-US,en;q=0.8';
+        $ENV{'REMOTE_ADDR'} = '74.92.149.57';
+	$l = new_ok('CGI::Lingua' => [
+		supported => [ 'en-gb', 'da', 'fr', 'nl', 'de', 'it', 'cy', 'pt', 'pl', 'ja' ]
+	]);
+	ok($l->language() eq 'English');
+	ok($l->sublanguage() eq 'United States');
+	ok($l->code_alpha2() eq 'en');
+
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-ZZ,en;q=0.8';
+	$l = new_ok('CGI::Lingua' => [
+		supported => [ 'en-gb', 'da', 'fr', 'nl', 'de', 'it', 'cy', 'pt', 'pl', 'ja' ]
+	]);
+	ok($l->language() eq 'English');
+	ok($l->sublanguage() eq 'Unknown');
+	ok($l->code_alpha2() eq 'en');
 }

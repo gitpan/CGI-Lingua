@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.19';
+our $VERSION = '0.20';
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -14,7 +14,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.19
+Version 0.20
 
 =cut
 
@@ -223,7 +223,7 @@ sub _find_language {
 				$self->{_rlanguage} = $self->{_slanguage};
 				return;
 			}
-			if($l =~ /(.+)-(.+)/) {
+			if($l =~ /(.+)-(..)/) {
 				my $alpha2 = $1;
 				my $variety = $2;
 				my $accepts = I18N::AcceptLanguage->new()->accepts($alpha2, $self->{_supported});
@@ -247,8 +247,15 @@ sub _find_language {
 				$self->{_rlanguage} = $lang;
 				$self->_get_closest($alpha2, $alpha2);
 				if($self->{_sublanguage}) {
-					$ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /(.+)-(.+)/;
-					$self->{_sublanguage} = Locale::Object::Country->new(code_alpha2 => $2)->name;
+					$ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /(.+)-(..)/;
+					eval {
+						$lang = Locale::Object::Country->new(code_alpha2 => $2)
+					};
+					if($@) {
+						$self->{_sublanguage} = 'Unknown';
+					} else {
+						$self->{_sublanguage} = $lang->name;
+					}
 					$self->{_rlanguage} = "$self->{_slanguage} ($self->{_sublanguage})";
 				}
 		       }
@@ -263,7 +270,7 @@ sub _find_language {
 				if($l) {
 					$self->{_rlanguage} = $l;
 				} else {
-					if($self->{_rlanguage} =~ /(.+)-(.+)/) {
+					if($self->{_rlanguage} =~ /(.+)-(..)/) {
 						my $l = Locale::Language::code2language($1);
 						unless($l) {
 							$l = $1;

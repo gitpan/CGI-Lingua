@@ -1,5 +1,9 @@
 Revision history for CGI-Lingua
 
+0.20	Fixed some 'Can't call method "name" on an undefined value' when the
+		browser suggests more than one language and a requested
+		sublanguage isn't available
+
 0.19	More sensible choice of real world language requirements, for example
 		a browser requesting US English on a site that only delivers
 		British English will now see the site, AND the site author
