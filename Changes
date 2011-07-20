@@ -1,5 +1,11 @@
 Revision history for CGI-Lingua
 
+0.21	Wed Jul 20 13:39:57 EDT 2011
+	Added locale method
+	Had another go at returning sensible values if a requested
+		sublanguage can't be honoured
+	Added test for RT69509
+
 0.20	Fixed some 'Can't call method "name" on an undefined value' when the
 		browser suggests more than one language and a requested
 		sublanguage isn't available

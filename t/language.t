@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 73;
+use Test::More tests => 75;
 
 BEGIN {
 	use_ok('CGI::Lingua');
@@ -115,7 +115,7 @@ LANGUAGES: {
 	]);
 	ok($l->language() eq 'English');
 	ok(defined($l->requested_language()));
-	ok($l->requested_language() eq 'English');
+	ok($l->requested_language() eq 'English (United States)');
 	ok(!defined($l->sublanguage()));
 	ok($l->code_alpha2() eq 'en');
 	ok(!defined($l->country()));
@@ -154,6 +154,7 @@ LANGUAGES: {
 		supported => [ 'en-gb', 'da', 'fr', 'nl', 'de', 'it', 'cy', 'pt', 'pl', 'ja' ]
 	]);
 	ok($l->language() eq 'English');
+	ok($l->requested_language() eq 'English (United States)');
 	ok($l->sublanguage() eq 'United States');
 	ok($l->code_alpha2() eq 'en');
 
@@ -164,4 +165,5 @@ LANGUAGES: {
 	ok($l->language() eq 'English');
 	ok($l->sublanguage() eq 'Unknown');
 	ok($l->code_alpha2() eq 'en');
+	ok($l->requested_language() eq 'English (Unknown)');
 }

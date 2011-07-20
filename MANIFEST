@@ -11,7 +11,11 @@ t/coverage.t
 t/hk.t
 t/kwalitee.t
 t/language.t
+t/locale.t
 t/manifest.t
 t/pod-cm.t
 t/pod.t
 t/port.t
+t/rt69509.t
+t/sub-lang.t
+META.json                                Module JSON meta-data (added by MakeMaker)

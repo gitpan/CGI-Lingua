@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 $VERSION = eval $VERSION;
 
 =head1 NAME
@@ -14,7 +14,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.20
+Version 0.21
 
 =cut
 
@@ -51,7 +51,7 @@ tells the application which language the user would like to use.
     use CHI;
     use CGI::Lingua;
 
-    my $cache = (CHI->new(driver => 'File'));
+    my $cache = CHI->new(driver => 'File');
     my $l = CGI::Lingua->new(supported => ['en', 'fr], cache => $cache);
 
 =head1 SUBROUTINES/METHODS
@@ -93,6 +93,7 @@ sub new {
 		_sublanguage => undef,	# E.g. US for en-US if you want American English
 		_slanguage_code_alpha2 => undef, # E.g en, fr
 		_country => undef,	# Two letters, e.g. gb
+		_locale => undef,
 	};
 	bless $self, $class;
 
@@ -111,13 +112,14 @@ on a site that only serves Britsh English, language() will return 'English'.
     my $l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb']);
 
     # If the browser requests 'en-us' , then language will be 'English' and
-    # sublanguage will be 'United States'
+    # sublanguage will be undefined because we weren't able to satisy the
+    # request
 
     # Site supports British English only
-    my $l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb']);
+    my $l = CGI::Lingua->new(supported => ['fr', 'en-gb']);
 
     # If the browser requests 'en-us' , then language will be 'English' and
-    # sublanguage will be undefined
+    # sublanguage will also be undefined
 
 The above behaviour may streem strange, but it ensures that sites behave
 sensibly.
@@ -219,15 +221,25 @@ sub _find_language {
 		if($l) {
 			$self->{_slanguage} = Locale::Language::code2language($l);
 			if($self->{_slanguage}) {
+				# We have the language, but not the right
+				# sublanguage, e.g. they want US English but we
+				# only support British English or English
+				# wanted: en-us, got en-gb and en
 				$self->{_slanguage_code_alpha2} = $l;
 				$self->{_rlanguage} = $self->{_slanguage};
+
+				if($ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /..-(..)/) {
+					my $l = Locale::Object::Country->new(code_alpha2 => $1);
+					if($l) {
+						$self->{_rlanguage} .= ' (' . $l->name . ')';
+					}
+				}
 				return;
 			}
 			if($l =~ /(.+)-(..)/) {
 				my $alpha2 = $1;
 				my $variety = $2;
 				my $accepts = I18N::AcceptLanguage->new()->accepts($alpha2, $self->{_supported});
-
 
 				if($accepts) {
 					$self->{_slanguage} = Locale::Language::code2language($accepts);
@@ -249,14 +261,17 @@ sub _find_language {
 				if($self->{_sublanguage}) {
 					$ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /(.+)-(..)/;
 					eval {
-						$lang = Locale::Object::Country->new(code_alpha2 => $2)
+						$lang = Locale::Object::Country->new(code_alpha2 => lc($2));
 					};
 					if($@) {
 						$self->{_sublanguage} = 'Unknown';
 					} else {
 						$self->{_sublanguage} = $lang->name;
 					}
-					$self->{_rlanguage} = "$self->{_slanguage} ($self->{_sublanguage})";
+					if(defined($self->{_sublanguage})) {
+						$self->{_rlanguage} = "$self->{_slanguage} ($self->{_sublanguage})";
+						return;
+					}
 				}
 		       }
 		}
@@ -270,13 +285,10 @@ sub _find_language {
 				if($l) {
 					$self->{_rlanguage} = $l;
 				} else {
-					if($self->{_rlanguage} =~ /(.+)-(..)/) {
-						my $l = Locale::Language::code2language($1);
-						unless($l) {
-							$l = $1;
-						}
-						$self->{_rlanguage} = "$l (" . Locale::Object::Country->new(code_alpha2 => $2)->name . ')';
-					}
+					# We have the language, but not the right
+					# sublanguage, e.g. they want US English but we
+					# only support British English
+					# wanted: en-us, got en-gb and not en
 				}
 				return;
 			}
@@ -311,11 +323,13 @@ sub _find_language {
 							$code = Locale::Language::language2code($1);
 						}
 						unless($code) {
-							carp('Can\'t determine code from requested language ' . $self->{_rlanguage});
+							carp('Can\'t determine code from IP $ip for requested language ' . $self->{_rlanguage});
 						}
 					}
 				}
-				$self->_get_closest($code, $l->code_alpha2);
+				if($code) {
+					$self->_get_closest($code, $l->code_alpha2);
+				}
 			}
 			if($self->{_cache} && defined($ip)) {
 				$country = $self->{_cache}->set("Lingua $ip", $country, 600);
@@ -349,8 +363,8 @@ sub _get_closest {
 
 =head2 country
 
-Returns the country of the remote end.  This only does a Whois lookup, but
-it is useful to have this method so that it can use the cache.
+Returns the two character country code of the remote end.  This only does a
+Whois lookup, but it is useful to have this method so that it can use the cache.
 
 =cut
 
@@ -412,6 +426,56 @@ sub country {
 	return $self->{_country};
 }
 
+=head2 locale
+
+HTTP doesn't have a way of transmitting a brower's localisation informtion
+which would be useful for default currency, date formatting etc.
+
+This method attempts to detect the information, but it is a best guess
+and is not 100% reliable.  But it's better than nothing ;-)
+
+Returns a Locale::Object object.
+
+=cut
+
+sub locale {
+	my $self = shift;
+
+	if($self->{_locale}) {
+		return $self->{_locale};
+	}
+
+	# First try from the User Agent.  Probably only works with Mozilla and
+	# Safari.  I don't know about Opera.  It won't work with IE or Chrome.
+	my $agent = $ENV{'HTTP_USER_AGENT'};
+	my $country;
+	if(defined($agent) && ($agent =~ /\((.+)\)/)) {
+		require Locale::Object::Country;
+		Locale::Object::Country->import;
+
+		foreach(split(/;/, $1)) {
+			my $candidate = $_;
+
+			$candidate =~ s/^\s//g;
+			$candidate =~ s/\s$//g;
+			if($candidate =~ /..-(..)/) {
+				my $country = Locale::Object::Country->new(code_alpha2 => $1);
+				if($country) {
+					return $country;
+				}
+			}
+		}
+	}
+
+	# Try from the IP address
+	$country = $self->country();
+
+	if($country) {
+		return Locale::Object::Country->new(code_alpha2 => $country);
+	}
+	return undef;
+}
+
 =head1 AUTHOR
 
 Nigel Horne, C<< <njh at bandsman.co.uk> >>
@@ -422,6 +486,10 @@ Please report any bugs or feature requests to C<bug-cgi-lingua at rt.cpan.org>, 
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=CGI-Lingua>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
+
+=head1 SEE ALSO
+
+Locale::Object
 
 
 
