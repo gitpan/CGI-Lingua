@@ -5,8 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.21';
-$VERSION = eval $VERSION;
+our $VERSION = '0.22';
 
 =head1 NAME
 
@@ -14,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.21
+Version 0.22
 
 =cut
 
@@ -51,7 +50,7 @@ tells the application which language the user would like to use.
     use CHI;
     use CGI::Lingua;
 
-    my $cache = CHI->new(driver => 'File');
+    my $cache = CHI->new(driver => 'File', root_dir => '/tmp/cache', namespace => 'CGI::Lingua-countries');
     my $l = CGI::Lingua->new(supported => ['en', 'fr], cache => $cache);
 
 =head1 SUBROUTINES/METHODS
@@ -119,10 +118,9 @@ on a site that only serves Britsh English, language() will return 'English'.
     my $l = CGI::Lingua->new(supported => ['fr', 'en-gb']);
 
     # If the browser requests 'en-us' , then language will be 'English' and
-    # sublanguage will also be undefined
+    # sublanguage will also be undefined, which may streem strange, but it
+    # ensures that sites behave sensibly.
 
-The above behaviour may streem strange, but it ensures that sites behave
-sensibly.
 =cut
 
 sub language {
@@ -302,7 +300,10 @@ sub _find_language {
 	if(defined($country)) {
 		# Determine the first official language of the country
 
-		my $l = (Locale::Object::Country->new(code_alpha2 => $country)->languages_official)[0];
+		my $l = Locale::Object::Country->new(code_alpha2 => $country);
+		if($l) {
+			$l = ($l->languages_official)[0];
+		}
 		my $ip = $ENV{'REMOTE_ADDR'};
 		if($l && $l->name) {
 			$self->{_rlanguage} = $l->name;
@@ -473,7 +474,7 @@ sub locale {
 	if($country) {
 		return Locale::Object::Country->new(code_alpha2 => $country);
 	}
-	return undef;
+	return;
 }
 
 =head1 AUTHOR
