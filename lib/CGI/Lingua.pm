@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.22';
+our $VERSION = '0.23';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.22
+Version 0.23
 
 =cut
 
@@ -45,13 +45,13 @@ tells the application which language the user would like to use.
       # print worldwide contact details
     }
 
-    ...
+    # ...
 
     use CHI;
     use CGI::Lingua;
 
     my $cache = CHI->new(driver => 'File', root_dir => '/tmp/cache', namespace => 'CGI::Lingua-countries');
-    my $l = CGI::Lingua->new(supported => ['en', 'fr], cache => $cache);
+    my $l = CGI::Lingua->new(supported => ['en', 'fr'], cache => $cache);
 
 =head1 SUBROUTINES/METHODS
 
@@ -66,7 +66,7 @@ For a list of primary-codes refer to ISO-639 (e.g. 'en' for English).
 For a list of country-codes refer to ISO-3166 (e.g. 'gb' for United Kingdom).
 
     # We support English, French, British and American English, in that order
-    my $l = CGI::Lingua(supported => [('en', 'fr', 'en-gb', en-us')]);
+    my $l = CGI::Lingua(supported => [('en', 'fr', 'en-gb', 'en-us')]);
 
 Takes one optional parameter, a CHI object which is used to cache Whois lookups.
 
@@ -435,7 +435,7 @@ which would be useful for default currency, date formatting etc.
 This method attempts to detect the information, but it is a best guess
 and is not 100% reliable.  But it's better than nothing ;-)
 
-Returns a Locale::Object object.
+Returns a Locale::Object::Country object.
 
 =cut
 
@@ -445,24 +445,25 @@ sub locale {
 	if($self->{_locale}) {
 		return $self->{_locale};
 	}
+	require Locale::Object::Country;
+	Locale::Object::Country->import;
+
 
 	# First try from the User Agent.  Probably only works with Mozilla and
 	# Safari.  I don't know about Opera.  It won't work with IE or Chrome.
 	my $agent = $ENV{'HTTP_USER_AGENT'};
 	my $country;
 	if(defined($agent) && ($agent =~ /\((.+)\)/)) {
-		require Locale::Object::Country;
-		Locale::Object::Country->import;
-
 		foreach(split(/;/, $1)) {
 			my $candidate = $_;
 
 			$candidate =~ s/^\s//g;
 			$candidate =~ s/\s$//g;
 			if($candidate =~ /..-(..)/) {
-				my $country = Locale::Object::Country->new(code_alpha2 => $1);
-				if($country) {
-					return $country;
+				my $c = Locale::Object::Country->new(code_alpha2 => $1);
+				if($c) {
+					$self->{_locale} = $c;
+					return $c;
 				}
 			}
 		}
@@ -472,9 +473,12 @@ sub locale {
 	$country = $self->country();
 
 	if($country) {
-		return Locale::Object::Country->new(code_alpha2 => $country);
+		my $c = Locale::Object::Country->new(code_alpha2 => $country);
+		if($c) {
+			$self->{_locale} = $c;
+			return $c;
+		}
 	}
-	return;
 }
 
 =head1 AUTHOR

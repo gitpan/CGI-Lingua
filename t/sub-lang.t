@@ -2,7 +2,8 @@
 
 use strict;
 use warnings;
-use Test::More tests => 45;
+use Test::More tests => 46;
+use Test::NoWarnings;
 
 BEGIN {
 	use_ok('CGI::Lingua');

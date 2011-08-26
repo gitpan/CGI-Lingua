@@ -8,6 +8,7 @@ README
 t/00-load.t
 t/boiler.t
 t/coverage.t
+t/critic.t
 t/hk.t
 t/kwalitee.t
 t/language.t
@@ -17,5 +18,6 @@ t/pod-cm.t
 t/pod.t
 t/port.t
 t/rt69509.t
+t/snippets.t
 t/sub-lang.t
 META.json                                Module JSON meta-data (added by MakeMaker)

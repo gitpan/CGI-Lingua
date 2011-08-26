@@ -14,6 +14,7 @@ WriteMakefile(
     PREREQ_PM => {
         'Test::More' => 0,
 	'Test::Requires' => 0,
+	'Test::NoWarnings' => 0,
 	'Locale::Object::Country' => 0,
 	'I18N::AcceptLanguage' => 0,
 	'Locale::Language' => 0,
@@ -22,6 +23,7 @@ WriteMakefile(
 	'Net::Whois::IANA' => 0,
 	'Net::Whois::IP' => 0,
 	'Locale::Language' => 0,
+	'Class::Load' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'CGI-Lingua-*' },

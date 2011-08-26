@@ -2,7 +2,8 @@
 
 use strict;
 use warnings;
-use Test::More tests => 10;
+use Test::More tests => 16;
+use Test::NoWarnings;
 
 BEGIN {
 	use_ok('CGI::Lingua');
@@ -30,6 +31,7 @@ LANGUAGES: {
 		supported => ['en', 'en-us']
 	]);
 	ok(defined($l->locale()));
+	ok(defined($l->locale()->currency()));
 	ok($l->locale()->currency()->code() eq 'USD');
 
 	$ENV{'REMOTE_ADDR'} = '212.159.106.41';
@@ -39,6 +41,11 @@ LANGUAGES: {
 	]);
 	ok(defined($l->locale()));
 	ok($l->locale()->currency()->code() eq 'GBP');
+	ok(uc($l->locale()->code_alpha2()) eq 'GB');
+	isa_ok($l->locale, 'Locale::Object::Country');
+	my @l = $l->locale()->languages_official();
+	ok(uc($l[0]->code_alpha2()) eq 'EN');
+	ok(uc($l->locale()->code_alpha2()) eq 'GB');
 
         delete $ENV{'REMOTE_ADDR'};
 	$ENV{'HTTP_USER_AGENT'} = 'Java';

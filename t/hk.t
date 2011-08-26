@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Test::More tests => 14;
 use CGI::Lingua;
+# use Test::NoWarnings;	# Win32::locale::Lexicon produces warnings
 
 # Work around for systems with broken Module::Load
 # http://www.cpantesters.org/cpan/report/eae7b808-172d-11e0-a672-41e7f2486b6f
