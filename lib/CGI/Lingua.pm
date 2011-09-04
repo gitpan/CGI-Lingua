@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.23';
+our $VERSION = '0.24';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.23
+Version 0.24
 
 =cut
 
@@ -469,6 +469,23 @@ sub locale {
 		}
 	}
 
+	eval {
+		require HTTP::BrowserDetect;
+
+		HTTP::BrowserDetect->import;
+	};
+
+	unless($@) {
+		my $browser = HTTP::BrowserDetect->new($agent);
+
+		if($browser && $browser->country()) {
+			my $c = Locale::Object::Country->new(code_alpha2 => $browser->country());
+			if($c) {
+				$self->{_locale} = $c;
+				return $c;
+			}
+		}
+	}
 	# Try from the IP address
 	$country = $self->country();
 
@@ -479,6 +496,7 @@ sub locale {
 			return $c;
 		}
 	}
+
 }
 
 =head1 AUTHOR
@@ -494,7 +512,8 @@ automatically be notified of progress on your bug as I make changes.
 
 =head1 SEE ALSO
 
-Locale::Object
+Locale::Country::Object
+HTTP::BrowserDetect
 
 
 

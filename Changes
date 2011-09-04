@@ -1,5 +1,8 @@
 Revision history for CGI-Lingua
 
+0.24	Sun Sep  4 08:53:50 EDT 2011
+	locale now falls back to HTTP::BrowserDetect if it's present
+
 0.23	Fri Aug 26 13:19:51 EDT 2011
 	Added t/critic.t
 	Correct documentation about what class is returned by locale()
