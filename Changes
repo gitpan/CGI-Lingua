@@ -1,5 +1,8 @@
 Revision history for CGI-Lingua
 
+0.25	Tue Sep  6 13:08:06 EDT 2011
+	Only call HTTP::BrowserDetect if we're in a CGI environment
+
 0.24	Sun Sep  4 08:53:50 EDT 2011
 	locale now falls back to HTTP::BrowserDetect if it's present
 

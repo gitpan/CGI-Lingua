@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.24';
+our $VERSION = '0.25';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.24
+Version 0.25
 
 =cut
 
@@ -21,7 +21,8 @@ Version 0.24
 
 No longer does your website need to be in English only.
 CGI::Lingua provides a simple basis to determine which language to display a website.
-The website tells CGI::Lingua which languages it supports. Based on that list CGI::Lingua
+The website tells CGI::Lingua which languages it supports.
+Based on that list CGI::Lingua
 tells the application which language the user would like to use.
 
     use CGI::Lingua;
@@ -448,7 +449,6 @@ sub locale {
 	require Locale::Object::Country;
 	Locale::Object::Country->import;
 
-
 	# First try from the User Agent.  Probably only works with Mozilla and
 	# Safari.  I don't know about Opera.  It won't work with IE or Chrome.
 	my $agent = $ENV{'HTTP_USER_AGENT'};
@@ -467,25 +467,26 @@ sub locale {
 				}
 			}
 		}
-	}
 
-	eval {
-		require HTTP::BrowserDetect;
+		eval {
+			require HTTP::BrowserDetect;
 
-		HTTP::BrowserDetect->import;
-	};
+			HTTP::BrowserDetect->import;
+		};
 
-	unless($@) {
-		my $browser = HTTP::BrowserDetect->new($agent);
+		unless($@) {
+			my $browser = HTTP::BrowserDetect->new($agent);
 
-		if($browser && $browser->country()) {
-			my $c = Locale::Object::Country->new(code_alpha2 => $browser->country());
-			if($c) {
-				$self->{_locale} = $c;
-				return $c;
+			if($browser && $browser->country()) {
+				my $c = Locale::Object::Country->new(code_alpha2 => $browser->country());
+				if($c) {
+					$self->{_locale} = $c;
+					return $c;
+				}
 			}
 		}
 	}
+
 	# Try from the IP address
 	$country = $self->country();
 
@@ -496,7 +497,6 @@ sub locale {
 			return $c;
 		}
 	}
-
 }
 
 =head1 AUTHOR
