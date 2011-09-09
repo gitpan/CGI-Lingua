@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 16;
+use Test::More tests => 22;
 use Test::NoWarnings;
 
 BEGIN {
@@ -53,4 +53,17 @@ LANGUAGES: {
 		supported => ['en', 'en-us']
 	]);
 	ok(!defined($l->locale()));
+
+	# Asking for French in the US should return US locale
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'fr';
+	$ENV{'REMOTE_ADDR'} = '74.92.149.57';
+	$ENV{'HTTP_USER_AGENT'} = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10.7; en-US; rv:1.9.2.22) Gecko/20110902 Firefox/3.6.22';
+	$l = new_ok('CGI::Lingua' => [
+		supported => ['en', 'nl', 'fr', 'de', 'id', 'il', 'ja', 'ko', 'pt', 'ru', 'es', 'tr']
+	]);
+	ok(defined($l->locale()));
+	ok(uc($l->locale()->code_alpha2()) eq 'US');
+	isa_ok($l->locale, 'Locale::Object::Country');
+	ok(defined($l->locale()->currency()));
+	ok($l->locale()->currency()->code() eq 'USD');
 }

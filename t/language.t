@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 76;
+use Test::More tests => 89;
 use Test::NoWarnings;
 
 BEGIN {
@@ -72,6 +72,7 @@ LANGUAGES: {
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
 	ok($l->code_alpha2() eq 'en');
+	ok(!defined($l->sublanguage_code_alpha2()));
 	if($l->language() ne 'English') {
 		diag('Expected English got "' . $l->requested_language() . '"');
 	}
@@ -93,6 +94,7 @@ LANGUAGES: {
 	ok($l->requested_language() eq 'English');
 	ok(!defined($l->sublanguage()));
 	ok($l->code_alpha2() eq 'en');
+	ok(!defined($l->sublanguage_code_alpha2()));
 	ok(!defined($l->country()));
 
 	# Ask for US English on a site serving only British English should still
@@ -106,6 +108,7 @@ LANGUAGES: {
 	ok($l->requested_language() eq 'English (United States)');
 	ok($l->sublanguage() eq 'United States');
 	ok($l->code_alpha2() eq 'en');
+	ok($l->sublanguage_code_alpha2() eq 'us');
 	ok(!defined($l->country()));
 
 	# Ask for US English on a site serving British English and English
@@ -119,6 +122,7 @@ LANGUAGES: {
 	ok($l->requested_language() eq 'English (United States)');
 	ok(!defined($l->sublanguage()));
 	ok($l->code_alpha2() eq 'en');
+	ok(!defined($l->sublanguage_code_alpha2()));
 	ok(!defined($l->country()));
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'no';
@@ -129,6 +133,7 @@ LANGUAGES: {
 	ok($l->language() eq 'Unknown');
 	ok(defined($l->requested_language()));
 	ok(!defined($l->code_alpha2()));
+	ok(!defined($l->sublanguage_code_alpha2()));
 	ok($l->country() eq 'no');
 
 	delete($ENV{'HTTP_ACCEPT_LANGUAGE'});
@@ -158,6 +163,7 @@ LANGUAGES: {
 	ok($l->requested_language() eq 'English (United States)');
 	ok($l->sublanguage() eq 'United States');
 	ok($l->code_alpha2() eq 'en');
+	ok($l->sublanguage_code_alpha2() eq 'us');
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-ZZ,en;q=0.8';
 	$l = new_ok('CGI::Lingua' => [
@@ -166,5 +172,18 @@ LANGUAGES: {
 	ok($l->language() eq 'English');
 	ok($l->sublanguage() eq 'Unknown');
 	ok($l->code_alpha2() eq 'en');
+	ok($l->sublanguage_code_alpha2() eq 'zz');
 	ok($l->requested_language() eq 'English (Unknown)');
+
+	# Asking for French in the US should return French not English
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'fr';
+	$ENV{'REMOTE_ADDR'} = '74.92.149.57';
+	$l = new_ok('CGI::Lingua' => [
+		supported => ['en', 'nl', 'fr', 'de', 'id', 'il', 'ja', 'ko', 'pt', 'ru', 'es', 'tr']
+	]);
+	ok($l->language() eq 'French');
+	ok(!defined($l->sublanguage()));
+	ok($l->code_alpha2() eq 'fr');
+	ok(!defined($l->sublanguage_code_alpha2()));
+	ok($l->requested_language() eq 'French');
 }

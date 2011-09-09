@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.25
+Version 0.26
 
 =cut
 
@@ -90,8 +90,9 @@ sub new {
 				# (website) supports
 		_rlanguage => undef,	# Requested language
 		_slanguage => undef,	# Language that the website should display
-		_sublanguage => undef,	# E.g. US for en-US if you want American English
+		_sublanguage => undef,	# E.g. United States for en-US if you want American English
 		_slanguage_code_alpha2 => undef, # E.g en, fr
+		_sublanguage_code_alpha2 => undef, # E.g. us, gb
 		_country => undef,	# Two letters, e.g. gb
 		_locale => undef,
 	};
@@ -162,7 +163,8 @@ sub sublanguage {
 
 =head2 code_alpha2
 
-Gives the two character representation of the supported language, e.g. 'en'.
+Gives the two character representation of the supported language, e.g. 'en'
+when you've asked for en-gb.
 
 =cut
 
@@ -174,6 +176,23 @@ sub code_alpha2 {
 	}
 	return $self->{_slanguage_code_alpha2};
 }
+
+=head2 sublanguage_code_alpha2
+
+Gives the two character representation of the supported language, e.g. 'gb'
+when you've asked for en-gb.
+
+=cut
+
+sub sublanguage_code_alpha2 {
+	my $self = shift;
+
+	unless($self->{_sublanguage_code_alpha2}) {
+		$self->_find_language();
+	}
+	return $self->{_sublanguage_code_alpha2};
+}
+
 
 =head2 requested_language
 
@@ -248,6 +267,7 @@ sub _find_language {
 						if($self->{_sublanguage}) {
 							$self->{_rlanguage} = "$self->{_slanguage} ($self->{_sublanguage})";
 						}
+						$self->{_sublanguage_code_alpha2} = $variety;
 						return;
 					}
 				}
@@ -259,8 +279,9 @@ sub _find_language {
 				$self->_get_closest($alpha2, $alpha2);
 				if($self->{_sublanguage}) {
 					$ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /(.+)-(..)/;
+					$variety = lc($2);
 					eval {
-						$lang = Locale::Object::Country->new(code_alpha2 => lc($2));
+						$lang = Locale::Object::Country->new(code_alpha2 => $variety);
 					};
 					if($@) {
 						$self->{_sublanguage} = 'Unknown';
@@ -269,6 +290,7 @@ sub _find_language {
 					}
 					if(defined($self->{_sublanguage})) {
 						$self->{_rlanguage} = "$self->{_slanguage} ($self->{_sublanguage})";
+						$self->{_sublanguage_code_alpha2} = $variety;
 						return;
 					}
 				}
@@ -437,6 +459,10 @@ This method attempts to detect the information, but it is a best guess
 and is not 100% reliable.  But it's better than nothing ;-)
 
 Returns a Locale::Object::Country object.
+
+To be clear, if you're in the US and request the language in Spanish,
+and the site supports it, language() will return 'Spanish', and locale() will
+try to return the Locale::Object::Country for the US.
 
 =cut
 

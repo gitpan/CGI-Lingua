@@ -1,5 +1,9 @@
 Revision history for CGI-Lingua
 
+0.26	Fri Sep  9 11:13:02 EDT 2011
+	Added some tests and clarified the locale() documentation
+	Added subcountry_code_alpha2()
+
 0.25	Tue Sep  6 13:08:06 EDT 2011
 	Only call HTTP::BrowserDetect if we're in a CGI environment
 
