@@ -23,6 +23,8 @@ WriteMakefile(
 	'Net::Whois::IANA' => 0,
 	'Net::Whois::IP' => 0,
 	'Class::Load' => 0,
+	'CGI::Info' => 0,
+	'Sys::Syslog' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'CGI-Lingua-*' },

@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 89;
+use Test::More tests => 103;
 use Test::NoWarnings;
 
 BEGIN {
@@ -186,4 +186,25 @@ LANGUAGES: {
 	ok($l->code_alpha2() eq 'fr');
 	ok(!defined($l->sublanguage_code_alpha2()));
 	ok($l->requested_language() eq 'French');
+
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'fr-fr';
+	$l = new_ok('CGI::Lingua' => [
+		supported => ['en', 'nl', 'fr', 'de', 'id', 'il', 'ja', 'ko', 'pt', 'ru', 'es', 'tr']
+	]);
+	ok($l->language() eq 'French');
+	ok(!defined($l->sublanguage()));
+	ok($l->code_alpha2() eq 'fr');
+	ok(!defined($l->sublanguage_code_alpha2()));
+	ok($l->requested_language() eq 'French (France)');
+
+	$l = new_ok('CGI::Lingua' => [
+		supported => ['en', 'nl', 'fr', 'fr-fr', 'de', 'id', 'il', 'ja', 'ko', 'pt', 'ru', 'es', 'tr']
+	]);
+	ok($l->language() eq 'French');
+	ok(defined($l->sublanguage()));
+	ok($l->sublanguage() eq 'France');
+	ok($l->code_alpha2() eq 'fr');
+	ok(defined($l->sublanguage_code_alpha2()));
+	ok($l->sublanguage_code_alpha2() eq 'fr');
+	ok($l->requested_language() eq 'French (France)');
 }

@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.26';
+our $VERSION = '0.27';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.26
+Version 0.27
 
 =cut
 
@@ -26,7 +26,7 @@ Based on that list CGI::Lingua
 tells the application which language the user would like to use.
 
     use CGI::Lingua;
-
+    # ...
     my $l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
     my $language = $l->language();
     if ($language eq 'English') {
@@ -50,7 +50,7 @@ tells the application which language the user would like to use.
 
     use CHI;
     use CGI::Lingua;
-
+    # ...
     my $cache = CHI->new(driver => 'File', root_dir => '/tmp/cache', namespace => 'CGI::Lingua-countries');
     my $l = CGI::Lingua->new(supported => ['en', 'fr'], cache => $cache);
 
@@ -69,7 +69,9 @@ For a list of country-codes refer to ISO-3166 (e.g. 'gb' for United Kingdom).
     # We support English, French, British and American English, in that order
     my $l = CGI::Lingua(supported => [('en', 'fr', 'en-gb', 'en-us')]);
 
-Takes one optional parameter, a CHI object which is used to cache Whois lookups.
+Takes optional parameter, a CHI object which is used to cache Whois lookups.
+
+Takes optional boolean parameter, syslog, to log messages to Syslog
 
 =cut
 
@@ -95,6 +97,7 @@ sub new {
 		_sublanguage_code_alpha2 => undef, # E.g. us, gb
 		_country => undef,	# Two letters, e.g. gb
 		_locale => undef,
+		_syslog => $params{syslog},
 	};
 	bless $self, $class;
 
@@ -250,6 +253,8 @@ sub _find_language {
 					my $l = Locale::Object::Country->new(code_alpha2 => $1);
 					if($l) {
 						$self->{_rlanguage} .= ' (' . $l->name . ')';
+						# The requested sublanguage isn't
+						# supported so don't define that
 					}
 				}
 				return;
@@ -283,7 +288,17 @@ sub _find_language {
 					eval {
 						$lang = Locale::Object::Country->new(code_alpha2 => $variety);
 					};
-					if($@) {
+					if($@ || !defined($lang)) {
+						if($self->{_syslog}) {
+							require Sys::Syslog;
+							require CGI::Info;
+
+							Sys::Syslog->import;
+							my $info = CGI::Info->new();
+							openlog($info->script_name(), 'cons,pid', 'user');
+							syslog('warn', "Can't determine information for language $ENV{'HTTP_ACCEPT_LANGUAGE'}");
+							closelog();
+						}
 						$self->{_sublanguage} = 'Unknown';
 					} else {
 						$self->{_sublanguage} = $lang->name;

@@ -18,6 +18,7 @@ no_index:
     - t
     - inc
 requires:
+  CGI::Info: 0
   Class::Load: 0
   Data::Validate::IP: 0
   I18N::AcceptLanguage: 0
@@ -26,7 +27,8 @@ requires:
   Locale::Object::Country: 0
   Net::Whois::IANA: 0
   Net::Whois::IP: 0
+  Sys::Syslog: 0
   Test::More: 0
   Test::NoWarnings: 0
   Test::Requires: 0
-version: 0.26
+version: 0.27
