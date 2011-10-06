@@ -68,7 +68,10 @@ LANGUAGES: {
 	ok(defined $l->requested_language());
 
         $ENV{'REMOTE_ADDR'} = '212.159.106.41';
-	$l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
+	$l = CGI::Lingua->new(
+		supported => ['en', 'fr', 'en-gb', 'en-us'],
+		syslog => 1
+	);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
 	ok($l->code_alpha2() eq 'en');
@@ -167,7 +170,8 @@ LANGUAGES: {
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-ZZ,en;q=0.8';
 	$l = new_ok('CGI::Lingua' => [
-		supported => [ 'en-gb', 'da', 'fr', 'nl', 'de', 'it', 'cy', 'pt', 'pl', 'ja' ]
+		supported => [ 'en-gb', 'da', 'fr', 'nl', 'de', 'it', 'cy', 'pt', 'pl', 'ja' ],
+		syslog => 1
 	]);
 	ok($l->language() eq 'English');
 	ok($l->sublanguage() eq 'Unknown');

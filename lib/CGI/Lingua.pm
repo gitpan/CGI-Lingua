@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.27';
+our $VERSION = '0.28';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.27
+Version 0.28
 
 =cut
 
@@ -76,7 +76,9 @@ Takes optional boolean parameter, syslog, to log messages to Syslog
 =cut
 
 sub new {
-	my ($class, %params) = @_;
+	my ($proto, %params) = @_;
+
+	my $class = ref($proto) || $proto;
 
 	# TODO: check that the number of supported languages is > 0
 	# unless($params{supported} && ($#params{supported} > 0)) {
@@ -285,9 +287,18 @@ sub _find_language {
 				if($self->{_sublanguage}) {
 					$ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /(.+)-(..)/;
 					$variety = lc($2);
-					eval {
-						$lang = Locale::Object::Country->new(code_alpha2 => $variety);
-					};
+					my $db = Locale::Object::DB->new();
+					my @results = $db->lookup(
+						table => 'country',
+						result_column => '*',
+						search_column => 'code_alpha2',
+						value => $variety
+					);
+					if(defined($results[0])) {
+						eval {
+							$lang = Locale::Object::Country->new(code_alpha2 => $variety);
+						};
+					}
 					if($@ || !defined($lang)) {
 						if($self->{_syslog}) {
 							require Sys::Syslog;
@@ -296,8 +307,10 @@ sub _find_language {
 							Sys::Syslog->import;
 							my $info = CGI::Info->new();
 							openlog($info->script_name(), 'cons,pid', 'user');
-							syslog('warn', "Can't determine information for language $ENV{'HTTP_ACCEPT_LANGUAGE'}");
+							syslog('warning', "Can't determine information for language $ENV{'HTTP_ACCEPT_LANGUAGE'}");
 							closelog();
+						} else {
+							carp "Warning: Can't determine values for $ENV{'HTTP_ACCEPT_LANGUAGE'}";
 						}
 						$self->{_sublanguage} = 'Unknown';
 					} else {
@@ -435,11 +448,16 @@ sub country {
 		require Net::Whois::IP;
 		Net::Whois::IP->import;
 
-		my $whois = Net::Whois::IP::whoisip_query($ip);
-		if(defined($whois->{Country})) {
-			$self->{_country} = $whois->{Country};
-		} elsif(defined($whois->{country})) {
-			$self->{_country} = $whois->{country};
+		my $whois;
+		eval {
+			$whois = Net::Whois::IP::whoisip_query($ip);
+		};
+		unless ($@) {
+			if(defined($whois->{Country})) {
+				$self->{_country} = $whois->{Country};
+			} elsif(defined($whois->{country})) {
+				$self->{_country} = $whois->{country};
+			}
 		}
 
 		unless($self->{_country}) {

@@ -1,5 +1,10 @@
 Revision history for CGI-Lingua
 
+0.28	Thu Oct  6 13:44:20 EDT 2011
+	Improved handling of connection failure to whois.arin.net
+	Fix the argument to syslog
+	Try to avoid the Carp call within Locale::Object::Country
+
 0.27	Mon Sep 19 15:07:58 EDT 2011
 	Improved handling
 	Added syslog argument to new
