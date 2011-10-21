@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.28
+Version 0.29
 
 =cut
 
@@ -471,6 +471,9 @@ sub country {
 		}
 		if($self->{_country}) {
 			$self->{_country} = lc($self->{_country});
+			if($self->{_cache}) {
+				$self->{_cache}->set("Lingua $ip", $self->{_country}, 600);
+			}
 		}
 	}
 
