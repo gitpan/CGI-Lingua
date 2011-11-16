@@ -25,6 +25,8 @@ WriteMakefile(
 	'Class::Load' => 0,
 	'CGI::Info' => 0,
 	'Sys::Syslog' => 0,
+	'HTTP::BrowserDetect' => 0,
+	'Test::Kwalitee' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'CGI-Lingua-*' },

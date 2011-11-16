@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.29
+Version 0.30
 
 =cut
 
@@ -69,9 +69,11 @@ For a list of country-codes refer to ISO-3166 (e.g. 'gb' for United Kingdom).
     # We support English, French, British and American English, in that order
     my $l = CGI::Lingua(supported => [('en', 'fr', 'en-gb', 'en-us')]);
 
-Takes optional parameter, a CHI object which is used to cache Whois lookups.
+Takes optional parameter, an object which is used to cache Whois lookups.
+This cache object will be an instantiation of a class that understands get and
+set, such as L<CHI>.
 
-Takes optional boolean parameter, syslog, to log messages to Syslog
+Takes optional boolean parameter, syslog, to log messages to L<Sys::Syslog>.
 
 =cut
 
@@ -112,7 +114,7 @@ Tells the CGI application what language to display its messages in.
 The language is the natural name e.g. 'English' or 'Japanese'.
 
 Sublanguages are handled sensibly, so that if a client requests U.S. English
-on a site that only serves Britsh English, language() will return 'English'.
+on a site that only serves British English, language() will return 'English'.
 
     # Site supports English and British English
     my $l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb']);
@@ -351,6 +353,8 @@ sub _find_language {
 	if(defined($country)) {
 		# Determine the first official language of the country
 
+		# 190.24.1.122 as carriage returns in its WHOIS record
+		$country =~ s/\r//;
 		my $l = Locale::Object::Country->new(code_alpha2 => $country);
 		if($l) {
 			$l = ($l->languages_official)[0];
@@ -488,7 +492,7 @@ sub country {
 
 =head2 locale
 
-HTTP doesn't have a way of transmitting a brower's localisation informtion
+HTTP doesn't have a way of transmitting a browser's localisation information
 which would be useful for default currency, date formatting etc.
 
 This method attempts to detect the information, but it is a best guess
