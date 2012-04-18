@@ -6,6 +6,8 @@ MANIFEST
 META.yml			Module meta-data (added by MakeMaker)
 README
 t/00-load.t
+t/01-new.t
+t/boilerplate.t
 t/boiler.t
 t/coverage.t
 t/critic.t
@@ -17,12 +19,15 @@ t/kwalitee.t
 t/language.t
 t/locale.t
 t/manifest.t
-t/prereq.t
+t/noplan.t
 t/pod-cm.t
+t/pod-coverage.t
 t/pod.t
 t/port.t
+t/prereq.t
 t/rt69509.t
 t/snippets.t
 t/spelling.t
 t/sub-lang.t
+t/vars.t
 META.json                                Module JSON meta-data (added by MakeMaker)

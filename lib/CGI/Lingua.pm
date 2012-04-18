@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.30
+Version 0.31
 
 =cut
 
@@ -525,12 +525,14 @@ sub locale {
 
 			$candidate =~ s/^\s//g;
 			$candidate =~ s/\s$//g;
-			if($candidate =~ /..-(..)/) {
+			if($candidate =~ /..\-(..)$/) {
+				local $SIG{__WARN__} = undef;
 				my $c = Locale::Object::Country->new(code_alpha2 => $1);
 				if($c) {
 					$self->{_locale} = $c;
 					return $c;
 				}
+				# carp "Warning: unknown country $1 derived from $candidate in HTTP_USER_AGENT ($agent)";
 			}
 		}
 

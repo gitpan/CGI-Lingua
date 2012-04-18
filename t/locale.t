@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 22;
+use Test::More tests => 29;
 use Test::NoWarnings;
 
 BEGIN {
@@ -66,4 +66,20 @@ LANGUAGES: {
 	isa_ok($l->locale, 'Locale::Object::Country');
 	ok(defined($l->locale()->currency()));
 	ok($l->locale()->currency()->code() eq 'USD');
+
+	# User agent doesn't contain a location
+	$ENV{'REMOTE_ADDR'} = '81.145.173.18';
+	$ENV{'HTTP_USER_AGENT'} = 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.2; WOW64; Trident/4.0; .NET CLR 1.1.4322; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30; .NET CLR 3.0.04506.648; .NET CLR 3.5.21022; MS-RTC LM 8; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; .NET4.0C; .NET4.0E)';
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-gb';
+
+	$l = new_ok('CGI::Lingua' => [
+		supported => ['en', 'en-gb']
+	]);
+	ok(defined($l->locale()));
+	ok($l->locale()->currency()->code() eq 'GBP');
+	ok(uc($l->locale()->code_alpha2()) eq 'GB');
+	isa_ok($l->locale, 'Locale::Object::Country');
+	@l = $l->locale()->languages_official();
+	ok(uc($l[0]->code_alpha2()) eq 'EN');
+	ok(uc($l->locale()->code_alpha2()) eq 'GB');
 }

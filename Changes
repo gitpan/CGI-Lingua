@@ -1,5 +1,8 @@
 Revision history for CGI-Lingua
 
+0.31	Wed Apr 18 16:47:20 BST 2012
+	Improved parsing of HTTP_USER_AGENT to find local information
+
 0.30	Tue Nov 15 19:41:35 EST 2011
 	Fixed spelling mistakes in the documentation
 	Handle whois records containing \r, e.g. 190.24.1.122
