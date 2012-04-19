@@ -1,5 +1,8 @@
 Revision history for CGI-Lingua
 
+0.32	Thu Apr 19 12:00:56 BST 2012
+	More improvement to the parsing of HTTP_USER_AGENT
+
 0.31	Wed Apr 18 16:47:20 BST 2012
 	Improved parsing of HTTP_USER_AGENT to find local information
 
