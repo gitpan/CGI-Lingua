@@ -1,5 +1,8 @@
 Revision history for CGI-Lingua
 
+0.33	Wed Apr 25 20:58:47 BST 2012
+	Remove CR and LF from country codes in Whois
+
 0.32	Thu Apr 19 12:00:56 BST 2012
 	More improvement to the parsing of HTTP_USER_AGENT
 

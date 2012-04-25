@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.32
+Version 0.33
 
 =cut
 
@@ -559,6 +559,7 @@ sub locale {
 	$country = $self->country();
 
 	if($country) {
+		$country =~ s/[\r\n]//g;
 		my $c = Locale::Object::Country->new(code_alpha2 => $country);
 		if($c) {
 			$self->{_locale} = $c;
