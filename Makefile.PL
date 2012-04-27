@@ -1,6 +1,37 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
+use Getopt::Long;	# Technique courtesy of and inspired by IO::Lambda
+use IO::Socket::INET;
+
+my $online_tests;
+
+Getopt::Long::GetOptions('online-tests!' => \$online_tests);
+
+unless(defined($online_tests)) {
+	my $s = IO::Socket::INET->new(
+		PeerAddr => 'www.google.com:80',
+		Timeout => 10
+	);
+	if($s) {
+		close($s);
+
+		print <<EOF;
+
+You appear to be directly connected to the Internet.  I have some tests
+that try to query Whois servers.
+
+EOF
+		$online_tests = prompt('Do you want to enable these tests?', 'y') =~ /^y/i ? 1 : 0;
+	}
+}
+
+if($online_tests) {
+	open(my $enabled, '>', 't/online.enabled') || die "Can't touch t/online.enabled $!";
+	close($enabled) || die "Can't touch t/online.enabled $!";
+} else {
+	unlink('t/online.enabled');
+}
 
 WriteMakefile(
     NAME                => 'CGI::Lingua',
@@ -29,5 +60,5 @@ WriteMakefile(
 	'Test::Kwalitee' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-    clean               => { FILES => 'CGI-Lingua-*' },
+    clean               => { FILES => 'CGI-Lingua-* t/online.enabled' },
 );

@@ -2,14 +2,17 @@
 
 use strict;
 use warnings;
-use Test::More tests => 29;
-use Test::NoWarnings;
+use Test::More;
 
-BEGIN {
+unless(-e 't/online.enabled') {
+	plan skip_all => 'On-line tests disabled';
+} else {
+	plan tests => 29;
+
 	use_ok('CGI::Lingua');
-}
+	require Test::NoWarnings;
+	Test::NoWarnings->import();
 
-LANGUAGES: {
 	eval {
 		CGI::Lingua->new();
 	};

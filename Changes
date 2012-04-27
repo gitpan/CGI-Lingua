@@ -1,5 +1,10 @@
 Revision history for CGI-Lingua
 
+0.34
+	Added dont_use_ip option
+	Use IO::Lambda style system to only run tests that require connection
+		to the Internet when requested
+
 0.33	Wed Apr 25 20:58:47 BST 2012
 	Remove CR and LF from country codes in Whois
 

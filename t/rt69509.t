@@ -11,6 +11,7 @@ BEGIN {
 }
 
 LANGUAGES: {
+	diag('Ignore messages about the Singhalese language. See https://rt.cpan.org/Public/Bug/Display.html?id=69509');
 	# Stop I18N::LangTags::Detect from detecting something
 	delete $ENV{'LANGUAGE'};
 	delete $ENV{'LC_ALL'};

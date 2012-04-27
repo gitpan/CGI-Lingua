@@ -2,14 +2,17 @@
 
 use strict;
 use warnings;
-use Test::More tests => 103;
-use Test::NoWarnings;
+use Test::More;
 
-BEGIN {
+unless(-e 't/online.enabled') {
+	plan skip_all => 'On-line tests disabled';
+} else {
+	plan tests => 103;
+
 	use_ok('CGI::Lingua');
-}
+	require Test::NoWarnings;
+	Test::NoWarnings->import();
 
-LANGUAGES: {
 	eval {
 		CGI::Lingua->new();
 	};
@@ -25,7 +28,7 @@ LANGUAGES: {
 	}
 
 	delete $ENV{'HTTP_ACCEPT_LANGUAGE'};
-        delete $ENV{'REMOTE_ADDR'};
+	delete $ENV{'REMOTE_ADDR'};
 	my $l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
@@ -33,7 +36,7 @@ LANGUAGES: {
 	ok($l->requested_language() eq 'Unknown');
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = '';
-        $ENV{'REMOTE_ADDR'} = '66.249.67.232';	# Google
+	$ENV{'REMOTE_ADDR'} = '66.249.67.232';	# Google
 	$l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
@@ -41,7 +44,7 @@ LANGUAGES: {
 	ok($l->requested_language() eq 'English');
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-gb,en;q=0.5';
-        delete $ENV{'REMOTE_ADDR'};
+	delete $ENV{'REMOTE_ADDR'};
 	$l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
@@ -67,7 +70,7 @@ LANGUAGES: {
 	ok($l->language() eq 'Unknown');
 	ok(defined $l->requested_language());
 
-        $ENV{'REMOTE_ADDR'} = '212.159.106.41';
+	$ENV{'REMOTE_ADDR'} = '212.159.106.41';
 	$l = CGI::Lingua->new(
 		supported => ['en', 'fr', 'en-gb', 'en-us'],
 		syslog => 1
@@ -87,7 +90,7 @@ LANGUAGES: {
 	ok($l->requested_language() =~ /English/);
 	ok($l->country() eq 'gb');
 
-        delete($ENV{'REMOTE_ADDR'});
+	delete($ENV{'REMOTE_ADDR'});
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en';
 	$l = new_ok('CGI::Lingua' => [
 		supported => ['en', 'en-gb', 'fr']
@@ -129,7 +132,7 @@ LANGUAGES: {
 	ok(!defined($l->country()));
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'no';
-        $ENV{'REMOTE_ADDR'} = '212.125.194.122';
+	$ENV{'REMOTE_ADDR'} = '212.125.194.122';
 	$l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
@@ -140,7 +143,7 @@ LANGUAGES: {
 	ok($l->country() eq 'no');
 
 	delete($ENV{'HTTP_ACCEPT_LANGUAGE'});
-        $ENV{'REMOTE_ADDR'} = 'a.b.c.d';
+	$ENV{'REMOTE_ADDR'} = 'a.b.c.d';
 	$l = new_ok('CGI::Lingua' => [
 		supported => ['en', 'fr']
 	]);
@@ -151,14 +154,14 @@ LANGUAGES: {
 	eval { $l->code_alpha2() };
 	ok($@ =~ /Unexpected IPv4 a.b.c.d/);
 
-        $ENV{'REMOTE_ADDR'} = '255.255.255.255';
+	$ENV{'REMOTE_ADDR'} = '255.255.255.255';
 	$l = new_ok('CGI::Lingua' => [
 		supported => ['de', 'fr']
 	]);
 	ok($l->language() eq 'Unknown');
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-US,en;q=0.8';
-        $ENV{'REMOTE_ADDR'} = '74.92.149.57';
+	$ENV{'REMOTE_ADDR'} = '74.92.149.57';
 	$l = new_ok('CGI::Lingua' => [
 		supported => [ 'en-gb', 'da', 'fr', 'nl', 'de', 'it', 'cy', 'pt', 'pl', 'ja' ]
 	]);

@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.33';
+our $VERSION = '0.34';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.33
+Version 0.34
 
 =cut
 
@@ -73,7 +73,12 @@ Takes optional parameter, an object which is used to cache Whois lookups.
 This cache object will be an instantiation of a class that understands get and
 set, such as L<CHI>.
 
-Takes optional boolean parameter, syslog, to log messages to L<Sys::Syslog>.
+Takes an optional boolean parameter syslog, to log messages to L<Sys::Syslog>.
+
+Takes an optional parameter dont_use_ip.  By default, if none of the
+requested languages are supported, CGI::Lingua->language() looks in the IP
+address for the language to use.  This may be not what you want, so use this
+option to disable the feature.
 
 =cut
 
@@ -102,6 +107,7 @@ sub new {
 		_country => undef,	# Two letters, e.g. gb
 		_locale => undef,
 		_syslog => $params{syslog},
+		_dont_use_ip => $params{dont_use_ip} || 0,
 	};
 	bless $self, $class;
 
@@ -348,7 +354,13 @@ sub _find_language {
 		$self->{_slanguage} = 'Unknown';
 	}
 
-	# The client hasn't said which to use, guess from their IP address
+	if($self->{_dont_use_ip}) {
+		return;
+	}
+
+	# The client hasn't said which to use, guess from their IP address,
+	# or the requested language(s) isn't/aren't supported so use the IP
+	# address for an alternative
 	my $country = $self->country();
 	if(defined($country)) {
 		# Determine the first official language of the country
