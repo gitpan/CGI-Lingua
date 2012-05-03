@@ -1,6 +1,9 @@
 Revision history for CGI-Lingua
 
-0.34
+0.35
+	Catch connection timeouts to whois.ripe.net
+
+0.34	Thu May  3 09:59:04 BST 2012
 	Added dont_use_ip option
 	Use IO::Lambda style system to only run tests that require connection
 		to the Internet when requested

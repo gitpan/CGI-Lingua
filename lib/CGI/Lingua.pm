@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.34';
+our $VERSION = '0.35';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.34
+Version 0.35
 
 =cut
 
@@ -365,8 +365,6 @@ sub _find_language {
 	if(defined($country)) {
 		# Determine the first official language of the country
 
-		# 190.24.1.122 as carriage returns in its WHOIS record
-		$country =~ s/\r//;
 		my $l = Locale::Object::Country->new(code_alpha2 => $country);
 		if($l) {
 			$l = ($l->languages_official)[0];
@@ -465,6 +463,11 @@ sub country {
 		Net::Whois::IP->import;
 
 		my $whois;
+
+		# Catch connection timeouts to whois.ripe.net by turning the
+		# carp into an error
+		local $SIG{__WARN__} = sub { die $_[0] };
+
 		eval {
 			$whois = Net::Whois::IP::whoisip_query($ip);
 		};
@@ -485,6 +488,9 @@ sub country {
 
 			$self->{_country} = $iana->country();
 		}
+		# 190.24.1.122 has carriage return in its WHOIS record
+		$self->{_country} =~ s/[\r\n]//g;
+
 		if($self->{_country}) {
 			$self->{_country} = lc($self->{_country});
 			if($self->{_cache}) {
