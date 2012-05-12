@@ -27,3 +27,7 @@ Sublanguages
 Whois
 en
 sublanguage
+IP
+gb
+lookup
+lookups

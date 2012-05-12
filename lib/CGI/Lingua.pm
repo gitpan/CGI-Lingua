@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.35';
+our $VERSION = '0.36';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.35
+Version 0.36
 
 =cut
 
@@ -484,9 +484,12 @@ sub country {
 			Net::Whois::IANA->import;
 
 			my $iana = new Net::Whois::IANA;
-			$iana->whois_query(-ip => $ip);
-
-			$self->{_country} = $iana->country();
+			eval {
+				$iana->whois_query(-ip => $ip);
+			};
+			unless ($@) {
+				$self->{_country} = $iana->country();
+			}
 		}
 		# 190.24.1.122 has carriage return in its WHOIS record
 		$self->{_country} =~ s/[\r\n]//g;

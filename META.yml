@@ -33,4 +33,4 @@ requires:
   Test::More: 0
   Test::NoWarnings: 0
   Test::Requires: 0
-version: 0.35
+version: 0.36

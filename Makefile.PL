@@ -6,23 +6,27 @@ use IO::Socket::INET;
 
 my $online_tests;
 
-Getopt::Long::GetOptions('online-tests!' => \$online_tests);
+if($ENV{RELEASE_TESTING}) {
+	$online_tests = 1;
+} else {
+	Getopt::Long::GetOptions('online-tests!' => \$online_tests);
 
-unless(defined($online_tests)) {
-	my $s = IO::Socket::INET->new(
-		PeerAddr => 'www.google.com:80',
-		Timeout => 10
-	);
-	if($s) {
-		close($s);
+	unless(defined($online_tests)) {
+		my $s = IO::Socket::INET->new(
+			PeerAddr => 'www.google.com:80',
+			Timeout => 10
+		);
+		if($s) {
+			close($s);
 
-		print <<EOF;
+			print <<EOF;
 
 You appear to be directly connected to the Internet.  I have some tests
 that try to query Whois servers.
 
 EOF
-		$online_tests = prompt('Do you want to enable these tests?', 'y') =~ /^y/i ? 1 : 0;
+			$online_tests = prompt('Do you want to enable these tests?', 'y') =~ /^y/i ? 1 : 0;
+		}
 	}
 }
 
