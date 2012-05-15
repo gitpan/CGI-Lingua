@@ -7,7 +7,7 @@ use Test::More;
 unless(-e 't/online.enabled') {
 	plan skip_all => 'On-line tests disabled';
 } else {
-	plan tests => 103;
+	plan tests => 106;
 
 	use_ok('CGI::Lingua');
 	require Test::NoWarnings;
@@ -214,4 +214,11 @@ unless(-e 't/online.enabled') {
 	ok(defined($l->sublanguage_code_alpha2()));
 	ok($l->sublanguage_code_alpha2() eq 'fr');
 	ok($l->requested_language() eq 'French (France)');
+
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-gb,en;q=0.5,x-ns1Gcc7A8xaNx1,x-ns294eMxcVGQb2';
+	$l = new_ok('CGI::Lingua' => [
+		supported => [ 'en-gb' ]
+	]);
+	ok($l->language() eq 'English');
+	ok($l->sublanguage() eq 'United Kingdom');
 }

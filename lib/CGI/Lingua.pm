@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.36
+Version 0.37
 
 =cut
 
@@ -98,7 +98,6 @@ sub new {
 	my $self = {
 		_supported => $params{supported}, # List of languages (two letters) that the application
 		_cache => $params{cache},	# CHI
-				# (website) supports
 		_rlanguage => undef,	# Requested language
 		_slanguage => undef,	# Language that the website should display
 		_sublanguage => undef,	# E.g. United States for en-US if you want American English
@@ -293,7 +292,7 @@ sub _find_language {
 				$self->{_rlanguage} = $lang;
 				$self->_get_closest($alpha2, $alpha2);
 				if($self->{_sublanguage}) {
-					$ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /(.+)-(..)/;
+					$ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /(.{2})-(..)/;
 					$variety = lc($2);
 					my $db = Locale::Object::DB->new();
 					my @results = $db->lookup(
@@ -546,7 +545,7 @@ sub locale {
 
 			$candidate =~ s/^\s//g;
 			$candidate =~ s/\s$//g;
-			if($candidate =~ /^[a-zA-Z]{2}\-([a-zA-Z]{2})$/) {
+			if($candidate =~ /^[a-zA-Z]{2}-([a-zA-Z]{2})$/) {
 				local $SIG{__WARN__} = undef;
 				my $c = Locale::Object::Country->new(code_alpha2 => $1);
 				if($c) {
@@ -642,7 +641,7 @@ L<http://search.cpan.org/dist/CGI-Lingua/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010-2011 Nigel Horne.
+Copyright 2010-2012 Nigel Horne.
 
 This program is released under the following licence: GPL
 
