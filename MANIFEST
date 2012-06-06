@@ -26,6 +26,7 @@ t/pod.t
 t/port.t
 t/prereq.t
 t/rt69509.t
+t/rt77332.t
 t/snippets.t
 t/spelling.t
 t/sub-lang.t

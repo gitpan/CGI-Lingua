@@ -1,5 +1,12 @@
 Revision history for CGI-Lingua
 
+0.38	Sat Jun  2 15:23:40 EDT 2012
+	Fix use of unitialised variable
+	Handle remote address '::1' (IPv6)
+	Added test for RT77332
+	locale(): better handling of whois failure
+	Handle case where Whois entry consists only of a newline
+
 0.37	Tue May 15 14:37:47 EDT 2012
 	Fix strange sublanguage handling when
 		'HTTP_ACCEPT_LANGUAGE = 'en-gb,en;q=0.5,x-ns1Gcc7A8xaNx1,x-ns294eMxcVGQb2'

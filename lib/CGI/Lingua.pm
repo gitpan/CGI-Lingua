@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 =head1 NAME
 
@@ -13,17 +13,17 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.37
+Version 0.38
 
 =cut
 
 =head1 SYNOPSIS
 
 No longer does your website need to be in English only.
-CGI::Lingua provides a simple basis to determine which language to display a website.
-The website tells CGI::Lingua which languages it supports.
-Based on that list CGI::Lingua
-tells the application which language the user would like to use.
+CGI::Lingua provides a simple basis to determine which language to display a
+website. The website tells CGI::Lingua which languages it supports. Based on
+that list CGI::Lingua tells the application which language the user would like
+to use.
 
     use CGI::Lingua;
     # ...
@@ -380,7 +380,9 @@ sub _find_language {
 
 				my $code = Locale::Language::language2code($self->{_rlanguage});
 				unless($code) {
-					$code = Locale::Language::language2code($ENV{'HTTP_ACCEPT_LANGUAGE'});
+					if($ENV{'HTTP_ACCEPT_LANGUAGE'}) {
+						$code = Locale::Language::language2code($ENV{'HTTP_ACCEPT_LANGUAGE'});
+					}
 					unless($code) {
 						# If language is Norwegian (Nynorsk)
 						# lookup Norwegian
@@ -388,7 +390,7 @@ sub _find_language {
 							$code = Locale::Language::language2code($1);
 						}
 						unless($code) {
-							carp('Can\'t determine code from IP $ip for requested language ' . $self->{_rlanguage});
+							carp("Can\'t determine code from IP $ip for requested language $self->{_rlanguage}");
 						}
 					}
 				}
@@ -449,8 +451,13 @@ sub country {
 	Data::Validate::IP->import;
 
 	unless(is_ipv4($ip)) {
-		carp "Unexpected IPv4 $ip\n";
-		return();
+		if($ip eq '::1') {
+			# special case that is easy to handle
+			$ip = '127.0.0.1';
+		} else {
+			carp "$ip isn't a valid IPv4 address\n";
+			return();
+		}
 	}
 
 	if($self->{_cache}) {
@@ -470,7 +477,7 @@ sub country {
 		eval {
 			$whois = Net::Whois::IP::whoisip_query($ip);
 		};
-		unless ($@) {
+		unless($@ || !defined($whois)) {
 			if(defined($whois->{Country})) {
 				$self->{_country} = $whois->{Country};
 			} elsif(defined($whois->{country})) {
@@ -490,8 +497,10 @@ sub country {
 				$self->{_country} = $iana->country();
 			}
 		}
-		# 190.24.1.122 has carriage return in its WHOIS record
-		$self->{_country} =~ s/[\r\n]//g;
+		if($self->{_country}) {
+			# 190.24.1.122 has carriage return in its WHOIS record
+			$self->{_country} =~ s/[\r\n]//g;
+		}
 
 		if($self->{_country}) {
 			$self->{_country} = lc($self->{_country});

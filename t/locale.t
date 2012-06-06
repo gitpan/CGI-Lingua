@@ -7,7 +7,7 @@ use Test::More;
 unless(-e 't/online.enabled') {
 	plan skip_all => 'On-line tests disabled';
 } else {
-	plan tests => 29;
+	plan tests => 32;
 
 	use_ok('CGI::Lingua');
 	require Test::NoWarnings;
@@ -43,9 +43,9 @@ unless(-e 't/online.enabled') {
 		supported => ['en', 'en-gb']
 	]);
 	ok(defined($l->locale()));
+	isa_ok($l->locale(), 'Locale::Object::Country');
 	ok($l->locale()->currency()->code() eq 'GBP');
 	ok(uc($l->locale()->code_alpha2()) eq 'GB');
-	isa_ok($l->locale, 'Locale::Object::Country');
 	my @l = $l->locale()->languages_official();
 	ok(uc($l[0]->code_alpha2()) eq 'EN');
 	ok(uc($l->locale()->code_alpha2()) eq 'GB');
@@ -65,8 +65,8 @@ unless(-e 't/online.enabled') {
 		supported => ['en', 'nl', 'fr', 'de', 'id', 'il', 'ja', 'ko', 'pt', 'ru', 'es', 'tr']
 	]);
 	ok(defined($l->locale()));
+	isa_ok($l->locale(), 'Locale::Object::Country');
 	ok(uc($l->locale()->code_alpha2()) eq 'US');
-	isa_ok($l->locale, 'Locale::Object::Country');
 	ok(defined($l->locale()->currency()));
 	ok($l->locale()->currency()->code() eq 'USD');
 
@@ -79,10 +79,20 @@ unless(-e 't/online.enabled') {
 		supported => ['en', 'en-gb']
 	]);
 	ok(defined($l->locale()));
+	isa_ok($l->locale(), 'Locale::Object::Country');
 	ok($l->locale()->currency()->code() eq 'GBP');
 	ok(uc($l->locale()->code_alpha2()) eq 'GB');
-	isa_ok($l->locale, 'Locale::Object::Country');
 	@l = $l->locale()->languages_official();
 	ok(uc($l[0]->code_alpha2()) eq 'EN');
+	ok(uc($l->locale()->code_alpha2()) eq 'GB');
+
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-us';
+	$ENV{'REMOTE_ADDR'} = '81.158.123.118';
+	$ENV{'HTTP_USER_AGENT'} = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/534.55.3 (KHTML, like Gecko) Version/5.1.5 Safari/534.55.3';
+	$l = new_ok('CGI::Lingua' => [
+		supported => [ 'en-gb', 'da', 'fr', 'nl', 'de', 'it', 'cy', 'pt', 'pl', 'ja' ],
+	]);
+	my $locale = $l->locale();
+	isa_ok($locale, 'Locale::Object::Country');
 	ok(uc($l->locale()->code_alpha2()) eq 'GB');
 }

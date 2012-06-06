@@ -149,10 +149,10 @@ unless(-e 't/online.enabled') {
 	]);
 	local $SIG{__WARN__} = sub { die $_[0] };
 	eval { $l->language() };
-	ok($@ =~ /Unexpected IPv4 a.b.c.d/);
+	ok($@ =~ /a\.b\.c\.d isn't a valid IPv4 address/);
 	ok(defined($l->requested_language()));
 	eval { $l->code_alpha2() };
-	ok($@ =~ /Unexpected IPv4 a.b.c.d/);
+	ok($@ =~ /a\.b\.c\.d isn't a valid IPv4 address/);
 
 	$ENV{'REMOTE_ADDR'} = '255.255.255.255';
 	$l = new_ok('CGI::Lingua' => [
