@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.38';
+our $VERSION = '0.39';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Natural language choices for CGI programs
 
 =head1 VERSION
 
-Version 0.38
+Version 0.39
 
 =cut
 
@@ -438,6 +438,8 @@ Whois lookup, but it is useful to have this method so that it can use the cache.
 sub country {
 	my $self = shift;
 
+	# FIXME: If previous calls to country() return undef, we'll go waste
+	# time going through again and no doubt returning undef again.
 	if($self->{_country}) {
 		return $self->{_country};
 	}
@@ -510,7 +512,7 @@ sub country {
 		}
 	}
 
-	if($self->{_country} eq 'hk') {
+	if($self->{_country} && ($self->{_country} eq 'hk')) {
 		# Hong Kong is no longer a country, but Whois thinks
 		# it is - try "whois 218.213.130.87"
 		$self->{_country} = 'cn';
@@ -595,6 +597,17 @@ sub locale {
 			return $c;
 		}
 	}
+
+	# Try mod_geoip
+	if(defined($ENV{'GEOIP_COUNTRY_CODE'})) {
+		$country = $ENV{'GEOIP_COUNTRY_CODE'};
+		my $c = Locale::Object::Country->new(code_alpha2 => $country);
+		if($c) {
+			$self->{_locale} = $c;
+			return $c;
+		}
+	}
+	return ();	# returns undef
 }
 
 =head1 AUTHOR

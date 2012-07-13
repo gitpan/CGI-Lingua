@@ -15,6 +15,7 @@ t/cr.t
 t/cv.t
 t/gv.t
 t/hk.t
+t/hp-tablet.t
 t/kwalitee.t
 t/language.t
 t/locale.t

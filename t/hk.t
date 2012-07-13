@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 14;
+use Test::More;
 use CGI::Lingua;
 # use Test::NoWarnings;	# Win32::locale::Lexicon produces warnings
 
@@ -12,7 +12,11 @@ use Test::Requires {
 	'Module::Load::Conditional' => 0.38
 };
 
-HONG_KONG: {
+unless(-e 't/online.enabled') {
+	plan skip_all => 'On-line tests disabled';
+} else {
+	plan tests => 14;
+
 	my $cache;
 
 	eval {

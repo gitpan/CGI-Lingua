@@ -1,5 +1,10 @@
 Revision history for CGI-Lingua
 
+0.39	Fri Jul 13 09:44:11 BST 2012
+	Use mod_geoip as a fall back if it is installed
+	Fixed unitialized variable in test
+	Better handling of automatic build environments
+	
 0.38	Sat Jun  2 15:23:40 EDT 2012
 	Fix use of unitialised variable
 	Handle remote address '::1' (IPv6)

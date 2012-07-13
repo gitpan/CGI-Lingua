@@ -1,13 +1,15 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
-use Getopt::Long;	# Technique courtesy of and inspired by IO::Lambda
+use Getopt::Long;	# Technique inspired by IO::Lambda
 use IO::Socket::INET;
 
 my $online_tests;
 
 if($ENV{RELEASE_TESTING}) {
 	$online_tests = 1;
+} elsif($ENV{AUTOMATED_TESTING}) {
+	$online_tests = 0;
 } else {
 	Getopt::Long::GetOptions('online-tests!' => \$online_tests);
 
@@ -17,15 +19,25 @@ if($ENV{RELEASE_TESTING}) {
 			Timeout => 10
 		);
 		if($s) {
-			close($s);
-
 			print <<EOF;
 
 You appear to be directly connected to the Internet.  I have some tests
 that try to query Whois servers.
 
 EOF
-			$online_tests = prompt('Do you want to enable these tests?', 'y') =~ /^y/i ? 1 : 0;
+			close($s);
+
+			# Timeout inspired by Mail::IMAPClient
+			eval {
+				local $SIG{ALRM} = sub { die "alarm\n" };
+				alarm(60);
+				$online_tests = prompt('Do you want to enable these tests?', 'y') =~ /^y/i ? 1 : 0;
+				alarm(0);
+			};
+			if($@) {
+				print "\n";
+				$online_tests = 0;
+			}
 		}
 	}
 }
