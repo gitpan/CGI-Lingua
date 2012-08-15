@@ -5,15 +5,15 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.39';
+our $VERSION = '0.40';
 
 =head1 NAME
 
-CGI::Lingua - Natural language choices for CGI programs
+CGI::Lingua - Create a multilingual web page
 
 =head1 VERSION
 
-Version 0.39
+Version 0.40
 
 =cut
 
@@ -60,7 +60,8 @@ to use.
 
 Creates a CGI::Lingua object.
 
-Takes one mandatory parameter: a list of languages, in RFC-1766 format, that the website supports.
+Takes one mandatory parameter: a list of languages, in RFC-1766 format, that
+the website supports.
 Language codes are of the form primary-code [ - country-code ] e.g. 'en', 'en-gb' for English and British English respectively.
 
 For a list of primary-codes refer to ISO-639 (e.g. 'en' for English).
@@ -69,11 +70,21 @@ For a list of country-codes refer to ISO-3166 (e.g. 'gb' for United Kingdom).
     # We support English, French, British and American English, in that order
     my $l = CGI::Lingua(supported => [('en', 'fr', 'en-gb', 'en-us')]);
 
-Takes optional parameter, an object which is used to cache Whois lookups.
-This cache object will be an instantiation of a class that understands get and
-set, such as L<CHI>.
+Takes optional parameter cache, an object which is used to cache Whois lookups.
+This cache object is an object that understands get() and
+set() messages, such as an L<CHI> object.
 
 Takes an optional boolean parameter syslog, to log messages to L<Sys::Syslog>.
+
+Takes optional parameter logger, an object which is used for warnings.
+This logger object is an object that understands warn() message,
+such as a L<Log::Log4perl> object.
+
+Since emitting warnings from a CGI class can result in messages being lost (you
+may forget to look in your server's log), or appearing to the client in
+amongst HTML causing invalid HTML, it is recommended either either syslog
+or logger (or both) are set.
+If neither is given, L<Carp> will be used.
 
 Takes an optional parameter dont_use_ip.  By default, if none of the
 requested languages are supported, CGI::Lingua->language() looks in the IP
@@ -83,9 +94,8 @@ option to disable the feature.
 =cut
 
 sub new {
-	my ($proto, %params) = @_;
-
-	my $class = ref($proto) || $proto;
+	my $class = ref($_[0]) || shift;
+	my %params = ref($_[0]) eq 'HASH' ? %{$_[0]} : @_;
 
 	# TODO: check that the number of supported languages is > 0
 	# unless($params{supported} && ($#params{supported} > 0)) {
@@ -107,10 +117,34 @@ sub new {
 		_locale => undef,
 		_syslog => $params{syslog},
 		_dont_use_ip => $params{dont_use_ip} || 0,
+		_logger => $params{logger},
 	};
 	bless $self, $class;
 
 	return $self;
+}
+
+# Emit a warning message somewhere
+sub _warn {
+	my ($self, $params) = @_;
+
+	return unless($$params{warning});
+
+	if($self->{_syslog}) {
+		require Sys::Syslog;
+		require CGI::Info;
+
+		Sys::Syslog->import;
+		my $info = CGI::Info->new();
+		openlog($info->script_name(), 'cons,pid', 'user');
+		syslog('warning', $$params{warning});
+		closelog();
+	}
+	if($self->{_logger}) {
+		$self->{_logger}->warn($$params{warning});
+	} elsif(!defined($self->{_syslog})) {
+		carp($$params{warning});
+	}
 }
 
 =head2 language
@@ -121,18 +155,18 @@ The language is the natural name e.g. 'English' or 'Japanese'.
 Sublanguages are handled sensibly, so that if a client requests U.S. English
 on a site that only serves British English, language() will return 'English'.
 
-    # Site supports English and British English
-    my $l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb']);
+# Site supports English and British English
+my $l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb']);
 
-    # If the browser requests 'en-us' , then language will be 'English' and
-    # sublanguage will be undefined because we weren't able to satisy the
-    # request
+# If the browser requests 'en-us' , then language will be 'English' and
+# sublanguage will be undefined because we weren't able to satisfy the
+# request
 
-    # Site supports British English only
-    my $l = CGI::Lingua->new(supported => ['fr', 'en-gb']);
+# Site supports British English only
+my $l = CGI::Lingua->new({supported => ['fr', 'en-gb']});
 
-    # If the browser requests 'en-us' , then language will be 'English' and
-    # sublanguage will also be undefined, which may streem strange, but it
+# If the browser requests 'en-us' , then language will be 'English' and
+    # sublanguage will also be undefined, which may seem strange, but it
     # ensures that sites behave sensibly.
 
 =cut
@@ -307,19 +341,10 @@ sub _find_language {
 						};
 					}
 					if($@ || !defined($lang)) {
-						if($self->{_syslog}) {
-							require Sys::Syslog;
-							require CGI::Info;
-
-							Sys::Syslog->import;
-							my $info = CGI::Info->new();
-							openlog($info->script_name(), 'cons,pid', 'user');
-							syslog('warning', "Can't determine information for language $ENV{'HTTP_ACCEPT_LANGUAGE'}");
-							closelog();
-						} else {
-							carp "Warning: Can't determine values for $ENV{'HTTP_ACCEPT_LANGUAGE'}";
-						}
 						$self->{_sublanguage} = 'Unknown';
+						$self->_warn({
+							warning => "Can't determine values for $ENV{'HTTP_ACCEPT_LANGUAGE'}"
+						});
 					} else {
 						$self->{_sublanguage} = $lang->name;
 					}
@@ -349,7 +374,9 @@ sub _find_language {
 				return;
 			}
 		}
-		$self->{_rlanguage} = 'Unknown';
+		unless($self->{_rlanguage}) {
+			$self->{_rlanguage} = 'Unknown';
+		}
 		$self->{_slanguage} = 'Unknown';
 	}
 
@@ -390,7 +417,9 @@ sub _find_language {
 							$code = Locale::Language::language2code($1);
 						}
 						unless($code) {
-							carp("Can\'t determine code from IP $ip for requested language $self->{_rlanguage}");
+							$self->_warn({
+								warning => "Can\'t determine code from IP $ip for requested language $self->{_rlanguage}"
+							});
 						}
 					}
 				}
@@ -402,7 +431,9 @@ sub _find_language {
 				$country = $self->{_cache}->set("Lingua $ip", $country, 600);
 			}
 		} elsif(defined($ip)) {
-			carp("Can't determine language from IP $ip, country $country");
+			$self->_warn({
+				warning => "Can't determine language from IP $ip, country $country"
+			});
 		}
 	}
 }
@@ -457,8 +488,10 @@ sub country {
 			# special case that is easy to handle
 			$ip = '127.0.0.1';
 		} else {
-			carp "$ip isn't a valid IPv4 address\n";
-			return();
+			$self->_warn({
+				warning => "$ip isn't a valid IPv4 address\n"
+			});
+			return;
 		}
 	}
 

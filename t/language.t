@@ -7,7 +7,7 @@ use Test::More;
 unless(-e 't/online.enabled') {
 	plan skip_all => 'On-line tests disabled';
 } else {
-	plan tests => 106;
+	plan tests => 116;
 
 	use_ok('CGI::Lingua');
 	require Test::NoWarnings;
@@ -43,9 +43,23 @@ unless(-e 't/online.enabled') {
 	ok($l->language() eq 'English');
 	ok($l->requested_language() eq 'English');
 
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = '';
+	$ENV{'REMOTE_ADDR'} = '66.249.67.232';	# Google
+	$l = CGI::Lingua->new(
+		supported => ['en', 'fr', 'en-gb', 'en-us'],
+		dont_use_ip => 1,
+	);
+	ok(defined $l);
+	ok($l->isa('CGI::Lingua'));
+	ok($l->language() eq 'Unknown');
+	ok($l->requested_language() eq 'Unknown');
+
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-gb,en;q=0.5';
 	delete $ENV{'REMOTE_ADDR'};
-	$l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
+	$l = CGI::Lingua->new(
+		supported => ['en', 'fr', 'en-gb', 'en-us'],
+		dont_use_ip => 1,
+	);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
 	ok($l->language() eq 'English');
@@ -221,4 +235,39 @@ unless(-e 't/online.enabled') {
 	]);
 	ok($l->language() eq 'English');
 	ok($l->sublanguage() eq 'United Kingdom');
+
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-zz';
+	$l = new_ok('CGI::Lingua' => [
+		supported => [ 'en-gb' ]
+	]);
+	eval {
+		my $lang = $l->language();
+	};
+	if($@) {
+		ok($@ =~ /Can't determine values for en-zz/);
+	} else {
+		ok(0);
+	}
+	ok($l->sublanguage() eq 'Unknown');
+
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-gb';
+	$l = new_ok('CGI::Lingua' => [
+		supported => [ 'en-zz' ]
+	]);
+	eval {
+		my $lang = $l->language();
+	};
+	if($@) {
+		ok($@ =~ /No result found in country table for 'zz'/);
+	} else {
+		ok(0);
+	}
+	eval {
+		my $lang = $l->sublanguage();
+	};
+	if($@) {
+		ok($@ =~ /No result found in country table for 'zz'/);
+	} else {
+		ok(0);
+	}
 }

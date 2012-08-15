@@ -1,5 +1,13 @@
 Revision history for CGI-Lingua
 
+0.40	Wed Aug 15 16:39:16 BST 2012
+	Added some extra tests and error handling
+	Removed duplicate tests
+	Allow new() to take its params in a reference to
+		a hash as well as a hash since references
+		are quicker and use less memory
+	Added optional logger parameter to new()
+
 0.39	Fri Jul 13 09:44:11 BST 2012
 	Use mod_geoip as a fall back if it is installed
 	Fixed unitialized variable in test

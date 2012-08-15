@@ -54,7 +54,8 @@ WriteMakefile(
     AUTHOR              => q{Nigel Horne <njh@bandsman.co.uk>},
     VERSION_FROM        => 'lib/CGI/Lingua.pm',
     ABSTRACT_FROM       => 'lib/CGI/Lingua.pm',
-    ($ExtUtils::MakeMaker::VERSION >= 6.3002
+    ((defined($ExtUtils::MakeMaker::VERSION) &&
+     ($ExtUtils::MakeMaker::VERSION >= 6.3002))
       ? ('LICENSE'=> 'GPL')
       : ()),
     PL_FILES            => {},
@@ -73,7 +74,7 @@ WriteMakefile(
 	'CGI::Info' => 0,
 	'Sys::Syslog' => 0,
 	'HTTP::BrowserDetect' => 0,
-	'Test::Kwalitee' => 0,
+	# 'Test::Kwalitee' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'CGI-Lingua-* t/online.enabled' },

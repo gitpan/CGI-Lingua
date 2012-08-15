@@ -33,7 +33,7 @@ LANGUAGES: {
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = '';
         $ENV{'REMOTE_ADDR'} = '66.249.67.232';	# Google
-	$l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
+	$l = CGI::Lingua->new({supported => ['en', 'fr', 'en-gb', 'en-us']});
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
 	ok($l->language() eq 'English');

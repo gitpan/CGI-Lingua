@@ -1,5 +1,5 @@
 ---
-abstract: 'Natural language choices for CGI programs'
+abstract: 'Create a multilingual web page'
 author:
   - 'Nigel Horne <njh@bandsman.co.uk>'
 build_requires:
@@ -29,8 +29,7 @@ requires:
   Net::Whois::IANA: 0
   Net::Whois::IP: 0
   Sys::Syslog: 0
-  Test::Kwalitee: 0
   Test::More: 0
   Test::NoWarnings: 0
   Test::Requires: 0
-version: 0.39
+version: 0.40
