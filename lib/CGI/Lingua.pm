@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.40';
+our $VERSION = '0.41';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Create a multilingual web page
 
 =head1 VERSION
 
-Version 0.40
+Version 0.41
 
 =cut
 
@@ -118,6 +118,7 @@ sub new {
 		_syslog => $params{syslog},
 		_dont_use_ip => $params{dont_use_ip} || 0,
 		_logger => $params{logger},
+		_have_geoip => -1,	# -1 = don't know
 	};
 	bless $self, $class;
 
@@ -134,7 +135,7 @@ sub _warn {
 		require Sys::Syslog;
 		require CGI::Info;
 
-		Sys::Syslog->import;
+		Sys::Syslog->import();
 		my $info = CGI::Info->new();
 		openlog($info->script_name(), 'cons,pid', 'user');
 		syslog('warning', $$params{warning});
@@ -263,15 +264,15 @@ sub _find_language {
 	$self->{_slanguage} = 'Unknown';
 
 	require Locale::Object::Country;
-	Locale::Object::Country->import;
+	Locale::Object::Country->import();
 
 	# Use what the client has said
 	if($ENV{'HTTP_ACCEPT_LANGUAGE'}) {
 		require I18N::AcceptLanguage;
 		require Locale::Language;
 
-		I18N::AcceptLanguage->import;
-		Locale::Language->import;
+		I18N::AcceptLanguage->import();
+		Locale::Language->import();
 
 		my $l = I18N::AcceptLanguage->new()->accepts($ENV{'HTTP_ACCEPT_LANGUAGE'}, $self->{_supported});
 		if((!$l) && ($ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /(.+)-.+/)) {
@@ -391,7 +392,7 @@ sub _find_language {
 	if(defined($country)) {
 		# Determine the first official language of the country
 
-		my $l = Locale::Object::Country->new(code_alpha2 => $country);
+		my $l = Locale::Object::Country->new(code_alpha2 => uc($country));
 		if($l) {
 			$l = ($l->languages_official)[0];
 		}
@@ -403,7 +404,7 @@ sub _find_language {
 				# Don't bother with secondary language
 				require Locale::Language;
 
-				Locale::Language->import;
+				Locale::Language->import();
 
 				my $code = Locale::Language::language2code($self->{_rlanguage});
 				unless($code) {
@@ -481,7 +482,7 @@ sub country {
 		return();
 	}
 	require Data::Validate::IP;
-	Data::Validate::IP->import;
+	Data::Validate::IP->import();
 
 	unless(is_ipv4($ip)) {
 		if($ip eq '::1') {
@@ -500,41 +501,60 @@ sub country {
 	}
 
 	unless(defined $self->{_country}) {
-		require Net::Whois::IP;
-		Net::Whois::IP->import;
-
-		my $whois;
-
-		# Catch connection timeouts to whois.ripe.net by turning the
-		# carp into an error
-		local $SIG{__WARN__} = sub { die $_[0] };
-
-		eval {
-			$whois = Net::Whois::IP::whoisip_query($ip);
-		};
-		unless($@ || !defined($whois)) {
-			if(defined($whois->{Country})) {
-				$self->{_country} = $whois->{Country};
-			} elsif(defined($whois->{country})) {
-				$self->{_country} = $whois->{country};
-			}
-		}
-
-		unless($self->{_country}) {
-			require Net::Whois::IANA;
-			Net::Whois::IANA->import;
-
-			my $iana = new Net::Whois::IANA;
+		if($self->{_have_geoip} == -1) {
 			eval {
-				$iana->whois_query(-ip => $ip);
+				require Geo::IP;
+				Geo::IP->import();
 			};
-			unless ($@) {
-				$self->{_country} = $iana->country();
+			if($@) {
+				$self->{_have_geoip} = 0;
+			} else {
+				$self->{_have_geoip} = 1;
 			}
 		}
-		if($self->{_country}) {
-			# 190.24.1.122 has carriage return in its WHOIS record
-			$self->{_country} =~ s/[\r\n]//g;
+		if($self->{_have_geoip} == 1) {
+			# GEOIP_STANDARD = 0, can't use that because you'll
+			# get a syntax error
+			my $gi = Geo::IP->new(0);
+			$self->{_country} = $gi->country_code_by_addr($ip);
+		}
+		unless($self->{_country}) {
+			require Net::Whois::IP;
+			Net::Whois::IP->import();
+
+			my $whois;
+
+			# Catch connection timeouts to whois.ripe.net by turning the
+			# carp into an error
+			local $SIG{__WARN__} = sub { die $_[0] };
+
+			eval {
+				$whois = Net::Whois::IP::whoisip_query($ip);
+			};
+			unless($@ || !defined($whois)) {
+				if(defined($whois->{Country})) {
+					$self->{_country} = $whois->{Country};
+				} elsif(defined($whois->{country})) {
+					$self->{_country} = $whois->{country};
+				}
+			}
+
+			unless($self->{_country}) {
+				require Net::Whois::IANA;
+				Net::Whois::IANA->import();
+
+				my $iana = new Net::Whois::IANA;
+				eval {
+					$iana->whois_query(-ip => $ip);
+				};
+				unless ($@) {
+					$self->{_country} = $iana->country();
+				}
+			}
+			if($self->{_country}) {
+				# 190.24.1.122 has carriage return in its WHOIS record
+				$self->{_country} =~ s/[\r\n]//g;
+			}
 		}
 
 		if($self->{_country}) {
@@ -577,7 +597,7 @@ sub locale {
 		return $self->{_locale};
 	}
 	require Locale::Object::Country;
-	Locale::Object::Country->import;
+	Locale::Object::Country->import();
 
 	# First try from the User Agent.  Probably only works with Mozilla and
 	# Safari.  I don't know about Opera.  It won't work with IE or Chrome.
@@ -603,7 +623,7 @@ sub locale {
 		eval {
 			require HTTP::BrowserDetect;
 
-			HTTP::BrowserDetect->import;
+			HTTP::BrowserDetect->import();
 		};
 
 		unless($@) {

@@ -22,13 +22,13 @@ t/locale.t
 t/logger.t
 t/manifest.t
 t/noplan.t
-t/online.enabled
 t/pod-cm.t
 t/pod.t
 t/port.t
 t/prereq.t
 t/rt69509.t
 t/rt77332.t
+t/rt79214.t
 t/snippets.t
 t/spelling.t
 t/sub-lang.t

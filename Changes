@@ -1,5 +1,9 @@
 Revision history for CGI-Lingua
 
+0.41	Sun Aug 26 11:21:06 BST 2012
+	Handle Whois queries that return country codes in lower case
+	Prefer Geo::IP over Whois lookups, if that is available
+
 0.40	Wed Aug 15 16:39:16 BST 2012
 	Added some extra tests and error handling
 	Removed duplicate tests
