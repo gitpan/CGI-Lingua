@@ -1,5 +1,12 @@
 Revision history for CGI-Lingua
 
+0.42	Tue Sep  4 12:41:38 BST 2012
+	Renamed code_alpha2 to language_code_alpha2.
+	Add note about using Geo::IP
+	Simplified the cache key
+	IP addresses don't change country that often, so increase the time
+		in the cache from 10 minutes to 1 month
+
 0.41	Sun Aug 26 11:21:06 BST 2012
 	Handle Whois queries that return country codes in lower case
 	Prefer Geo::IP over Whois lookups, if that is available

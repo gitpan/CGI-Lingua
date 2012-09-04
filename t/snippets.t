@@ -5,11 +5,11 @@ use warnings;
 use File::Spec;
 use Test::More;
 
-eval "use Test::Pod::Snippets";
-
 if(not $ENV{RELEASE_TESTING}) {
 	plan(skip_all => 'Author tests not required for installation');
 }
+
+eval "use Test::Pod::Snippets";
 
 if($@) {
 	plan skip_all => 'Test::Pod::Snippets required for testing POD code snippets';

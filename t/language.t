@@ -91,7 +91,7 @@ unless(-e 't/online.enabled') {
 	);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
-	ok($l->code_alpha2() eq 'en');
+	ok($l->language_code_alpha2() eq 'en');
 	ok(!defined($l->sublanguage_code_alpha2()));
 	if($l->language() ne 'English') {
 		diag('Expected English got "' . $l->requested_language() . '"');
@@ -113,7 +113,7 @@ unless(-e 't/online.enabled') {
 	ok(defined($l->requested_language()));
 	ok($l->requested_language() eq 'English');
 	ok(!defined($l->sublanguage()));
-	ok($l->code_alpha2() eq 'en');
+	ok($l->language_code_alpha2() eq 'en');
 	ok(!defined($l->sublanguage_code_alpha2()));
 	ok(!defined($l->country()));
 
@@ -127,7 +127,7 @@ unless(-e 't/online.enabled') {
 	ok(defined($l->requested_language()));
 	ok($l->requested_language() eq 'English (United States)');
 	ok($l->sublanguage() eq 'United States');
-	ok($l->code_alpha2() eq 'en');
+	ok($l->language_code_alpha2() eq 'en');
 	ok($l->sublanguage_code_alpha2() eq 'us');
 	ok(!defined($l->country()));
 
@@ -141,7 +141,7 @@ unless(-e 't/online.enabled') {
 	ok(defined($l->requested_language()));
 	ok($l->requested_language() eq 'English (United States)');
 	ok(!defined($l->sublanguage()));
-	ok($l->code_alpha2() eq 'en');
+	ok($l->language_code_alpha2() eq 'en');
 	ok(!defined($l->sublanguage_code_alpha2()));
 	ok(!defined($l->country()));
 
@@ -152,7 +152,7 @@ unless(-e 't/online.enabled') {
 	ok($l->isa('CGI::Lingua'));
 	ok($l->language() eq 'Unknown');
 	ok(defined($l->requested_language()));
-	ok(!defined($l->code_alpha2()));
+	ok(!defined($l->language_code_alpha2()));
 	ok(!defined($l->sublanguage_code_alpha2()));
 	ok($l->country() eq 'no');
 
@@ -165,7 +165,7 @@ unless(-e 't/online.enabled') {
 	eval { $l->language() };
 	ok($@ =~ /a\.b\.c\.d isn't a valid IPv4 address/);
 	ok(defined($l->requested_language()));
-	eval { $l->code_alpha2() };
+	eval { $l->language_code_alpha2() };
 	ok($@ =~ /a\.b\.c\.d isn't a valid IPv4 address/);
 
 	$ENV{'REMOTE_ADDR'} = '255.255.255.255';
@@ -182,7 +182,7 @@ unless(-e 't/online.enabled') {
 	ok($l->language() eq 'English');
 	ok($l->requested_language() eq 'English (United States)');
 	ok($l->sublanguage() eq 'United States');
-	ok($l->code_alpha2() eq 'en');
+	ok($l->language_code_alpha2() eq 'en');
 	ok($l->sublanguage_code_alpha2() eq 'us');
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-ZZ,en;q=0.8';
@@ -192,7 +192,7 @@ unless(-e 't/online.enabled') {
 	]);
 	ok($l->language() eq 'English');
 	ok($l->sublanguage() eq 'Unknown');
-	ok($l->code_alpha2() eq 'en');
+	ok($l->language_code_alpha2() eq 'en');
 	ok($l->sublanguage_code_alpha2() eq 'zz');
 	ok($l->requested_language() eq 'English (Unknown)');
 
@@ -204,7 +204,7 @@ unless(-e 't/online.enabled') {
 	]);
 	ok($l->language() eq 'French');
 	ok(!defined($l->sublanguage()));
-	ok($l->code_alpha2() eq 'fr');
+	ok($l->language_code_alpha2() eq 'fr');
 	ok(!defined($l->sublanguage_code_alpha2()));
 	ok($l->requested_language() eq 'French');
 
@@ -214,7 +214,7 @@ unless(-e 't/online.enabled') {
 	]);
 	ok($l->language() eq 'French');
 	ok(!defined($l->sublanguage()));
-	ok($l->code_alpha2() eq 'fr');
+	ok($l->language_code_alpha2() eq 'fr');
 	ok(!defined($l->sublanguage_code_alpha2()));
 	ok($l->requested_language() eq 'French (France)');
 
@@ -224,7 +224,7 @@ unless(-e 't/online.enabled') {
 	ok($l->language() eq 'French');
 	ok(defined($l->sublanguage()));
 	ok($l->sublanguage() eq 'France');
-	ok($l->code_alpha2() eq 'fr');
+	ok($l->language_code_alpha2() eq 'fr');
 	ok(defined($l->sublanguage_code_alpha2()));
 	ok($l->sublanguage_code_alpha2() eq 'fr');
 	ok($l->requested_language() eq 'French (France)');

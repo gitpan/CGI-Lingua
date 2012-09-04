@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Create a multilingual web page
 
 =head1 VERSION
 
-Version 0.41
+Version 0.42
 
 =cut
 
@@ -70,7 +70,8 @@ For a list of country-codes refer to ISO-3166 (e.g. 'gb' for United Kingdom).
     # We support English, French, British and American English, in that order
     my $l = CGI::Lingua(supported => [('en', 'fr', 'en-gb', 'en-us')]);
 
-Takes optional parameter cache, an object which is used to cache Whois lookups.
+Takes optional parameter cache, an object which is used to cache country
+lookups.
 This cache object is an object that understands get() and
 set() messages, such as an L<CHI> object.
 
@@ -208,20 +209,33 @@ sub sublanguage {
 	return $self->{_sublanguage};
 }
 
-=head2 code_alpha2
+=head2 language_code_alpha2
 
 Gives the two character representation of the supported language, e.g. 'en'
 when you've asked for en-gb.
 
 =cut
 
-sub code_alpha2 {
+sub language_code_alpha2 {
 	my $self = shift;
 
 	unless($self->{_slanguage_code_alpha2}) {
 		$self->_find_language();
 	}
 	return $self->{_slanguage_code_alpha2};
+}
+
+
+=head2 code_alpha2
+
+Synonym for language_code_alpha2, kept for historical reasons.
+
+=cut
+
+sub code_alpha2 {
+	my $self = shift;
+
+	return $self->language_code_alpha2();
 }
 
 =head2 sublanguage_code_alpha2
@@ -429,7 +443,7 @@ sub _find_language {
 				}
 			}
 			if($self->{_cache} && defined($ip)) {
-				$country = $self->{_cache}->set("Lingua $ip", $country, 600);
+				$country = $self->{_cache}->set($ip, $country, '1 month');
 			}
 		} elsif(defined($ip)) {
 			$self->_warn({
@@ -462,8 +476,12 @@ sub _get_closest {
 
 =head2 country
 
-Returns the two character country code of the remote end.  This only does a
-Whois lookup, but it is useful to have this method so that it can use the cache.
+Returns the two character country code of the remote end.
+
+If L<Geo::IP> is installed, CGI::Lingua will make use of that, otherwise
+it will do a Whois lookup.
+If you do not have Geo::IP installed, I recommend you make use of the
+caching capability of CGI::Lingua.
 
 =cut
 
@@ -497,7 +515,7 @@ sub country {
 	}
 
 	if($self->{_cache}) {
-		$self->{_country} = $self->{_cache}->get("Lingua $ip");
+		$self->{_country} = $self->{_cache}->get($ip);
 	}
 
 	unless(defined $self->{_country}) {
@@ -560,7 +578,7 @@ sub country {
 		if($self->{_country}) {
 			$self->{_country} = lc($self->{_country});
 			if($self->{_cache}) {
-				$self->{_cache}->set("Lingua $ip", $self->{_country}, 600);
+				$self->{_cache}->set($ip, $self->{_country}, '1 month');
 			}
 		}
 	}

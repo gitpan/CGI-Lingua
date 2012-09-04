@@ -32,5 +32,6 @@ t/rt79214.t
 t/snippets.t
 t/spelling.t
 t/sub-lang.t
+t/unused.t
 t/vars.t
 META.json                                Module JSON meta-data (added by MakeMaker)

@@ -13,32 +13,43 @@ if($ENV{RELEASE_TESTING}) {
 } else {
 	Getopt::Long::GetOptions('online-tests!' => \$online_tests);
 
-	unless(defined($online_tests)) {
-		my $s = IO::Socket::INET->new(
-			PeerAddr => 'www.google.com:80',
-			Timeout => 10
-		);
-		if($s) {
-			print <<EOF;
+	eval {
+		require Geo::IP;
+	};
+	if($@) {
+		unless(defined($online_tests)) {
+			my $s = IO::Socket::INET->new(
+				PeerAddr => 'www.google.com:80',
+				Timeout => 10
+			);
+			if($s) {
+				print <<EOF;
 
 You appear to be directly connected to the Internet.  I have some tests
 that try to query Whois servers.
 
 EOF
-			close($s);
+				close($s);
 
-			# Timeout inspired by Mail::IMAPClient
-			eval {
-				local $SIG{ALRM} = sub { die "alarm\n" };
-				alarm(60);
-				$online_tests = prompt('Do you want to enable these tests?', 'y') =~ /^y/i ? 1 : 0;
-				alarm(0);
-			};
-			if($@) {
-				print "\n";
-				$online_tests = 0;
+				# Timeout inspired by Mail::IMAPClient
+				eval {
+					local $SIG{ALRM} = sub { die "alarm\n" };
+					alarm(60);
+					$online_tests = prompt('Do you want to enable these tests?', 'y') =~ /^y/i ? 1 : 0;
+					alarm(0);
+				};
+				if($@) {
+					print "\n";
+					$online_tests = 0;
+				}
 			}
 		}
+	} else {
+		my $v = Geo::IP->VERSION;
+		print "You have Geo::IP version $v installed, so CGI::Lingua can work fast\n";
+		# It also shouldn't need to do anything with the Internet,
+		# so we can do all tests
+		$online_tests = 1;
 	}
 }
 
