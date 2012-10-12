@@ -1,5 +1,8 @@
 Revision history for CGI-Lingua
 
+0.43	Fri Oct 12 15:08:27 EDT 2012
+	Fix error on ACCEPT_LANGUAGE=es-419 (Latin American Spanish)
+
 0.42	Tue Sep  4 12:41:38 BST 2012
 	Renamed code_alpha2 to language_code_alpha2.
 	Add note about using Geo::IP

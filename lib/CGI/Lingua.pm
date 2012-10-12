@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.42';
+our $VERSION = '0.43';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Create a multilingual web page
 
 =head1 VERSION
 
-Version 0.42
+Version 0.43
 
 =cut
 
@@ -157,17 +157,21 @@ The language is the natural name e.g. 'English' or 'Japanese'.
 Sublanguages are handled sensibly, so that if a client requests U.S. English
 on a site that only serves British English, language() will return 'English'.
 
-# Site supports English and British English
-my $l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb']);
+If none of the requested languages is included within the supported lists,
+language() returns 'Unknown'.
 
-# If the browser requests 'en-us' , then language will be 'English' and
-# sublanguage will be undefined because we weren't able to satisfy the
-# request
+    use CGI::Lingua;
+    # Site supports English and British English
+    my $l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb']);
 
-# Site supports British English only
-my $l = CGI::Lingua->new({supported => ['fr', 'en-gb']});
+    # If the browser requests 'en-us' , then language will be 'English' and
+    # sublanguage will be undefined because we weren't able to satisfy the
+    # request
 
-# If the browser requests 'en-us' , then language will be 'English' and
+    # Site supports British English only
+    my $l = CGI::Lingua->new({supported => ['fr', 'en-gb']});
+
+    # If the browser requests 'en-us' , then language will be 'English' and
     # sublanguage will also be undefined, which may seem strange, but it
     # ensures that sites behave sensibly.
 
@@ -196,7 +200,8 @@ sub name {
 
 =head2 sublanguage
 
-Tells the CGI what variant to use e.g. 'United Kingdom'.
+Tells the CGI what variant to use e.g. 'United Kingdom', or 'Unknown' if
+it can't be determined.
 
 =cut
 
@@ -213,6 +218,9 @@ sub sublanguage {
 
 Gives the two character representation of the supported language, e.g. 'en'
 when you've asked for en-gb.
+
+If none of the requested languages is included within the supported lists,
+language_code_alpha2() returns undef.
 
 =cut
 
@@ -241,7 +249,7 @@ sub code_alpha2 {
 =head2 sublanguage_code_alpha2
 
 Gives the two character representation of the supported language, e.g. 'gb'
-when you've asked for en-gb.
+when you've asked for en-gb, or undef.
 
 =cut
 
@@ -307,8 +315,15 @@ sub _find_language {
 				$self->{_slanguage_code_alpha2} = $l;
 				$self->{_rlanguage} = $self->{_slanguage};
 
-				if($ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /..-(..)/) {
+				if($ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /..-(..)$/) {
 					my $l = Locale::Object::Country->new(code_alpha2 => $1);
+					if($l) {
+						$self->{_rlanguage} .= ' (' . $l->name . ')';
+						# The requested sublanguage isn't
+						# supported so don't define that
+					}
+				} elsif($ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /..-(...)$/) {
+					my $l = Locale::Object::Country->new(code_alpha3 => $1);
 					if($l) {
 						$self->{_rlanguage} .= ' (' . $l->name . ')';
 						# The requested sublanguage isn't
@@ -317,14 +332,17 @@ sub _find_language {
 				}
 				return;
 			}
-			if($l =~ /(.+)-(..)/) {
+			# TODO: Handle es-419 "Spanish (Latin America)
+			if($l =~ /(.+)-(..)$/) {
 				my $alpha2 = $1;
 				my $variety = $2;
 				my $accepts = I18N::AcceptLanguage->new()->accepts($alpha2, $self->{_supported});
 
 				if($accepts) {
 					$self->{_slanguage} = Locale::Language::code2language($accepts);
-					$self->{_sublanguage} = Locale::Object::Country->new(code_alpha2 => $variety)->name;
+					if(length($variety) == 2) {
+						$self->{_sublanguage} = Locale::Object::Country->new(code_alpha2 => $variety)->name;
+					}
 					if($self->{_slanguage}) {
 						$self->{_slanguage_code_alpha2} = $accepts;
 						if($self->{_sublanguage}) {
@@ -686,6 +704,9 @@ sub locale {
 Nigel Horne, C<< <njh at bandsman.co.uk> >>
 
 =head1 BUGS
+
+If HTTP_ACCEPT_LANGUAGE is 3 characters, e.g., es-419,
+sublanguage() returns undef.
 
 Please report any bugs or feature requests to C<bug-cgi-lingua at rt.cpan.org>, or through
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=CGI-Lingua>.  I will be notified, and then you'll

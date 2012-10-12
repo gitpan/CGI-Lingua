@@ -14,6 +14,7 @@ t/cr.t
 t/cv.t
 t/dist.t
 t/gv.t
+t/es_419.t
 t/hk.t
 t/hp-tablet.t
 t/kwalitee.t
