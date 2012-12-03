@@ -8,6 +8,7 @@ README
 t/00-load.t
 t/01-new.t
 t/boilerplate.t
+t/changes.t
 t/coverage.t
 t/critic.t
 t/cr.t
@@ -15,6 +16,7 @@ t/cv.t
 t/dist.t
 t/gv.t
 t/es_419.t
+t/eu.t
 t/hk.t
 t/hp-tablet.t
 t/kwalitee.t
@@ -34,5 +36,5 @@ t/snippets.t
 t/spelling.t
 t/sub-lang.t
 t/unused.t
+t/usgb.t
 t/vars.t
-META.json                                Module JSON meta-data (added by MakeMaker)

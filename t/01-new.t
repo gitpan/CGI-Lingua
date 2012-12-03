@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 31;
+use Test::More tests => 32;
 
 BEGIN {
 	use_ok('CGI::Lingua');
@@ -36,8 +36,11 @@ LANGUAGES: {
 	$l = CGI::Lingua->new({supported => ['en', 'fr', 'en-gb', 'en-us']});
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
-	ok($l->language() eq 'English');
-	ok($l->requested_language() eq 'English');
+	SKIP: {
+		skip 'Tests require Internet access', 2 unless(-e 't/online.enabled');
+		ok($l->language() eq 'English');
+		ok($l->requested_language() eq 'English');
+	}
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-gb,en;q=0.5';
         delete $ENV{'REMOTE_ADDR'};
@@ -69,15 +72,16 @@ LANGUAGES: {
 	$l = CGI::Lingua->new(supported => ['en', 'fr', 'en-gb', 'en-us']);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
-	if($l->language() ne 'English') {
-		diag('Expected English got "' . $l->requested_language() . '"');
+	SKIP: {
+		skip 'Tests require Internet access', 3 unless(-e 't/online.enabled');
+		ok($l->name() eq 'English');
+		ok(defined($l->code_alpha2()));
+		ok($l->code_alpha2() eq 'en');
 	}
-	ok($l->name() eq 'English');
-	ok($l->code_alpha2() eq 'en');
 	ok(defined $l->requested_language());
-	if($l->requested_language() !~ /English/) {
-		diag('Expected English requested language, got "' . $l->requested_language() . '"');
+	SKIP: {
+		skip 'Tests require Internet access', 2 unless(-e 't/online.enabled');
+		ok($l->requested_language() =~ /English/);
+		ok($l->country() eq 'gb');
 	}
-	ok($l->requested_language() =~ /English/);
-	ok($l->country() eq 'gb');
 }

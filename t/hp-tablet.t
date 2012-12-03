@@ -34,6 +34,9 @@ RT77332: {
 		local $TODO = 'https://github.com/oalders/http-browserdetect/issues/36';
 		ok(defined($l->code_alpha2()));
 		isa_ok($l->locale(), 'Locale::Object::Country');
-		ok(uc($l->locale()->code_alpha2()) eq 'NZ');
+		SKIP: {
+			skip 'Test requires Internet access', 1 unless(-e 't/online.enabled');
+			ok(uc($l->locale()->code_alpha2()) eq 'NZ');
+		}
 	};
 }

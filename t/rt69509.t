@@ -28,7 +28,10 @@ RT69509: {
 	]);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
-	ok($l->country() eq 'lk');
+	SKIP: {
+		skip 'Test requires Internet access', 1 unless(-e 't/online.enabled');
+		ok($l->country() eq 'lk');
+	}
 	ok(defined($l->requested_language()));
 
 	TODO: {

@@ -2,9 +2,9 @@
 
 use strict;
 use warnings;
-use Test::More tests => 10;
+use Test::More tests => 11;
 
-# Doesn't handle es-419 fully
+# Check comments in Whois records
 
 BEGIN {
 	use_ok('CGI::Lingua');
@@ -20,24 +20,21 @@ ES_419: {
 		$ENV{'IGNORE_WIN32_LOCALE'} = 1;
 	}
 
-	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'es-419,es;q=0.8';
-	$ENV{'REMOTE_ADDR'} = '201.213.196.117';
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en';
+	$ENV{'REMOTE_ADDR'} = '212.49.88.99';
 	my $l = new_ok('CGI::Lingua' => [
-		supported => ['en', 'nl', 'fr', 'fr-fr', 'de', 'id', 'il', 'ja', 'ko', 'pt', 'ru', 'es', 'tr', 'es-419'],
+		supported => ['en' ]
 	]);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
 	SKIP: {
 		skip 'Tests require Internet access', 4 unless(-e 't/online.enabled');
 		ok(defined($l->country()));
-		ok($l->country() eq 'ar');
-		ok($l->language_code_alpha2() eq 'es');
-		ok($l->language() eq 'Spanish');
+		ok($l->country() eq 'eu');
+		ok($l->language_code_alpha2() eq 'en');
+		ok($l->language() eq 'English');
 	}
 	ok(defined($l->requested_language()));
-	TODO: {
-		local $TODO = "sublanguage doesn't handle 3 characters";
-
-		ok(defined($l->sublanguage()));
-	};
+	ok($l->requested_language() eq 'English');
+	ok(!defined($l->sublanguage()));
 }

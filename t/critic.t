@@ -7,7 +7,7 @@ use Test::More;
 use English qw(-no_match_vars);
 
 unless($ENV{RELEASE_TESTING}) {
-    plan( skip_all => "Author tests not required for installation" );
+	plan( skip_all => "Author tests not required for installation" );
 }
 
 eval "use Test::Perl::Critic";

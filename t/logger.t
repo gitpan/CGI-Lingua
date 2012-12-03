@@ -15,11 +15,15 @@ LOGGER: {
 		if($@) {
 			plan skip_all => "Test::Log4perl required for checking logger";
 		} else {
-			plan tests => 14;
+			plan tests => 4;
 
 			use_ok('CGI::Lingua');
-			my $logger = Log::Log4perl->get_logger('CGI::Lingua');
-			my $tlogger = Test::Log4perl->get_logger('CGI::Lingua');
+
+			# Yes, I know the manual says it would be logged
+			# under CGI::Lingua, but it's acutally logged under
+			# CGI.Lingua
+			my $logger = Log::Log4perl->get_logger('CGI.Lingua');
+			my $tlogger = Test::Log4perl->get_logger('CGI.Lingua');
 
 			delete $ENV{'LANGUAGE'};
 			delete $ENV{'LC_ALL'};

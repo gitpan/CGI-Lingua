@@ -3,7 +3,6 @@
 use strict;
 use warnings;
 use Test::More;
-use IPC::SysV;
 
 if($ENV{RELEASE_TESTING}) {
 	use Test::Requires {

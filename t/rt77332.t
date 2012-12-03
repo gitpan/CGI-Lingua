@@ -34,6 +34,9 @@ RT77332: {
 	TODO: {
 		local $TODO = 'https://rt.cpan.org/Public/Bug/Display.html?id=77332';
 		ok(defined($l->code_alpha2()));
-		ok($l->country() eq 'by');
+		SKIP: {
+			skip 'Test requires Internet access', 1 unless(-e 't/online.enabled');
+			ok($l->country() eq 'by');
+		}
 	};
 }

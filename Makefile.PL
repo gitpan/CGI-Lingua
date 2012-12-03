@@ -15,6 +15,7 @@ if($ENV{RELEASE_TESTING}) {
 
 	eval {
 		require Geo::IP;
+		Geo::IP->import();
 	};
 	if($@) {
 		unless(defined($online_tests)) {
@@ -42,6 +43,8 @@ EOF
 					print "\n";
 					$online_tests = 0;
 				}
+			} else {
+				$online_tests = 0;
 			}
 		}
 	} else {

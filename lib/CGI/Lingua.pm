@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.43';
+our $VERSION = '0.44';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Create a multilingual web page
 
 =head1 VERSION
 
-Version 0.43
+Version 0.44
 
 =cut
 
@@ -372,6 +372,8 @@ sub _find_language {
 						eval {
 							$lang = Locale::Object::Country->new(code_alpha2 => $variety);
 						};
+					} else {
+						$lang = undef;
 					}
 					if($@ || !defined($lang)) {
 						$self->{_sublanguage} = 'Unknown';
@@ -560,14 +562,14 @@ sub country {
 
 			my $whois;
 
-			# Catch connection timeouts to whois.ripe.net by turning the
-			# carp into an error
+			# Catch connection timeouts to whois.ripe.net by turning
+			# the carp into an error
 			local $SIG{__WARN__} = sub { die $_[0] };
 
 			eval {
 				$whois = Net::Whois::IP::whoisip_query($ip);
 			};
-			unless($@ || !defined($whois)) {
+			unless($@ || !defined($whois) || (ref($whois) ne 'HASH')) {
 				if(defined($whois->{Country})) {
 					$self->{_country} = $whois->{Country};
 				} elsif(defined($whois->{country})) {
@@ -590,6 +592,10 @@ sub country {
 			if($self->{_country}) {
 				# 190.24.1.122 has carriage return in its WHOIS record
 				$self->{_country} =~ s/[\r\n]//g;
+			}
+			if($self->{_country} =~ /^(..)\s*#.*/) {
+				# Remove comments in the Whois record
+				$self->{_country} = $1;
 			}
 		}
 
