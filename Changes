@@ -1,5 +1,8 @@
 Revision history for CGI-Lingua
 
+0.45	Thu Dec  6 08:33:12 EST 2012
+	Fixed t/eu.t on systems with Geo::IP
+
 0.44	Mon Dec  3 08:47:12 EST 2012
 	Fixed t/unused.t for Windows - removed unneeded dependency
 	Added t/changes.t

@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.44';
+our $VERSION = '0.45';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Create a multilingual web page
 
 =head1 VERSION
 
-Version 0.44
+Version 0.45
 
 =cut
 

@@ -27,6 +27,11 @@ ES_419: {
 	]);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
+
+	# GeoIP correctly identifies this IP as being in Kenya, so force lookup
+	# on Whois
+	$l->{_have_geoip} = 0;
+
 	SKIP: {
 		skip 'Tests require Internet access', 4 unless(-e 't/online.enabled');
 		ok(defined($l->country()));
