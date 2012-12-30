@@ -1,5 +1,6 @@
 #!perl -w
 
+use strict;
 use Test::More;
 
 unless($ENV{RELEASE_TESTING}) {

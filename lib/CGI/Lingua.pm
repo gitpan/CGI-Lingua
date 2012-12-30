@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.45';
+our $VERSION = '0.46';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Create a multilingual web page
 
 =head1 VERSION
 
-Version 0.45
+Version 0.46
 
 =cut
 
@@ -592,10 +592,10 @@ sub country {
 			if($self->{_country}) {
 				# 190.24.1.122 has carriage return in its WHOIS record
 				$self->{_country} =~ s/[\r\n]//g;
-			}
-			if($self->{_country} =~ /^(..)\s*#.*/) {
-				# Remove comments in the Whois record
-				$self->{_country} = $1;
+				if($self->{_country} =~ /^(..)\s*#.*/) {
+					# Remove comments in the Whois record
+					$self->{_country} = $1;
+				}
 			}
 		}
 

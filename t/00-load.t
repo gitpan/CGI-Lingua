@@ -1,10 +1,13 @@
 #!perl -T
 
-use Test::More tests => 1;
+use strict;
+use Test::More tests => 2;
 
 BEGIN {
 	use_ok( 'CGI::Lingua' ) || print "Bail out!
 ";
 }
+
+require_ok('CGI::Info') || print 'Bail out!';
 
 diag( "Testing CGI::Lingua $CGI::Lingua::VERSION, Perl $], $^X" );

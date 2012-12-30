@@ -34,6 +34,7 @@ t/rt77332.t
 t/rt79214.t
 t/snippets.t
 t/spelling.t
+t/strict.t
 t/sub-lang.t
 t/unused.t
 t/usgb.t

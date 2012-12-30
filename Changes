@@ -1,5 +1,9 @@
 Revision history for CGI-Lingua
 
+0.46	Sun Dec 30 11:07:15 EST 2012
+	Handle uninitialised variable in country()
+	Added t/strict.t
+
 0.45	Thu Dec  6 08:33:12 EST 2012
 	Fixed t/eu.t on systems with Geo::IP
 
