@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 11;
+use Test::More tests => 21;
 
 # Check comments in Whois records
 
@@ -10,7 +10,8 @@ BEGIN {
 	use_ok('CGI::Lingua');
 }
 
-ES_419: {
+EU: {
+	diag('Ignore messages about the unknown country eu. Some whois records list the country as EU even though it is not a country');
 	# Stop I18N::LangTags::Detect from detecting something
 	delete $ENV{'LANGUAGE'};
 	delete $ENV{'LC_ALL'};
@@ -23,7 +24,7 @@ ES_419: {
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en';
 	$ENV{'REMOTE_ADDR'} = '212.49.88.99';
 	my $l = new_ok('CGI::Lingua' => [
-		supported => ['en' ]
+		supported => ['en']
 	]);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
@@ -42,4 +43,25 @@ ES_419: {
 	ok(defined($l->requested_language()));
 	ok($l->requested_language() eq 'English');
 	ok(!defined($l->sublanguage()));
+	diag($l->locale());
+
+	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-gb';
+	$ENV{'REMOTE_ADDR'} = '217.156.134.120';
+	$l = new_ok('CGI::Lingua' => [
+		supported => ['en']
+	]);
+	ok(defined $l);
+	ok($l->isa('CGI::Lingua'));
+
+	SKIP: {
+		skip 'Tests require Internet access', 4 unless(-e 't/online.enabled');
+		ok(defined($l->country()));
+		ok($l->country() eq 'eu');
+		ok($l->language_code_alpha2() eq 'en');
+		ok($l->language() eq 'English');
+	}
+	ok(defined($l->requested_language()));
+	ok($l->requested_language() eq 'English (United Kingdom)');
+	ok(!defined($l->sublanguage()));
+	diag($l->locale());
 }

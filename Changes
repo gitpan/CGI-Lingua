@@ -1,5 +1,10 @@
 Revision history for CGI-Lingua
 
+0.47	Sat Jan 19 09:21:56 EST 2013
+	Handle en-029
+	Remove t/unused.t - now use t/vars.t
+	Handle unknown country EU in locale().  Beefed up t/eu.t
+
 0.46	Sun Dec 30 11:07:15 EST 2012
 	Handle uninitialised variable in country()
 	Added t/strict.t

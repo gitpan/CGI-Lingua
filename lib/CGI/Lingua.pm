@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.46';
+our $VERSION = '0.47';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Create a multilingual web page
 
 =head1 VERSION
 
-Version 0.46
+Version 0.47
 
 =cut
 
@@ -322,7 +322,7 @@ sub _find_language {
 						# The requested sublanguage isn't
 						# supported so don't define that
 					}
-				} elsif($ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /..-(...)$/) {
+				} elsif($ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /..-([a-z]{2,3})$/i) {
 					my $l = Locale::Object::Country->new(code_alpha3 => $1);
 					if($l) {
 						$self->{_rlanguage} .= ' (' . $l->name . ')';
@@ -361,32 +361,35 @@ sub _find_language {
 				if($self->{_sublanguage}) {
 					$ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /(.{2})-(..)/;
 					$variety = lc($2);
-					my $db = Locale::Object::DB->new();
-					my @results = $db->lookup(
-						table => 'country',
-						result_column => '*',
-						search_column => 'code_alpha2',
-						value => $variety
-					);
-					if(defined($results[0])) {
-						eval {
-							$lang = Locale::Object::Country->new(code_alpha2 => $variety);
-						};
-					} else {
-						$lang = undef;
-					}
-					if($@ || !defined($lang)) {
-						$self->{_sublanguage} = 'Unknown';
-						$self->_warn({
-							warning => "Can't determine values for $ENV{'HTTP_ACCEPT_LANGUAGE'}"
-						});
-					} else {
-						$self->{_sublanguage} = $lang->name;
-					}
-					if(defined($self->{_sublanguage})) {
-						$self->{_rlanguage} = "$self->{_slanguage} ($self->{_sublanguage})";
-						$self->{_sublanguage_code_alpha2} = $variety;
-						return;
+					# Ignore en-029 etc (Carribean English)
+					if($variety =~ /[a-z]{2,3}/) {
+						my $db = Locale::Object::DB->new();
+						my @results = $db->lookup(
+							table => 'country',
+							result_column => '*',
+							search_column => 'code_alpha2',
+							value => $variety
+						);
+						if(defined($results[0])) {
+							eval {
+								$lang = Locale::Object::Country->new(code_alpha2 => $variety);
+							};
+						} else {
+							$lang = undef;
+						}
+						if($@ || !defined($lang)) {
+							$self->{_sublanguage} = 'Unknown';
+							$self->_warn({
+								warning => "Can't determine values for $ENV{'HTTP_ACCEPT_LANGUAGE'}"
+							});
+						} else {
+							$self->{_sublanguage} = $lang->name;
+						}
+						if(defined($self->{_sublanguage})) {
+							$self->{_rlanguage} = "$self->{_slanguage} ($self->{_sublanguage})";
+							$self->{_sublanguage_code_alpha2} = $variety;
+							return;
+						}
 					}
 				}
 		       }
@@ -686,10 +689,16 @@ sub locale {
 
 	if($country) {
 		$country =~ s/[\r\n]//g;
-		my $c = Locale::Object::Country->new(code_alpha2 => $country);
-		if($c) {
-			$self->{_locale} = $c;
-			return $c;
+		my $c;
+		eval {
+			local $SIG{__WARN__} = undef;
+			$c = Locale::Object::Country->new(code_alpha2 => $country);
+		};
+		unless($@) {
+			if($c) {
+				$self->{_locale} = $c;
+				return $c;
+			}
 		}
 	}
 

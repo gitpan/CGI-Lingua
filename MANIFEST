@@ -15,6 +15,7 @@ t/cr.t
 t/cv.t
 t/dist.t
 t/gv.t
+t/en_029.t
 t/es_419.t
 t/eu.t
 t/hk.t
@@ -36,7 +37,6 @@ t/snippets.t
 t/spelling.t
 t/strict.t
 t/sub-lang.t
-t/unused.t
 t/usgb.t
 t/vars.t
 META.json                                Module JSON meta-data (added by MakeMaker)
