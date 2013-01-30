@@ -1,5 +1,9 @@
 Revision history for CGI-Lingua
 
+0.48	Wed Jan 30 14:12:01 EST 2013
+	Fixed t/eu.t which gave false negatives on systems with GeoIP installed
+	Added CloudFlare optimisation to country()
+
 0.47	Sat Jan 19 09:21:56 EST 2013
 	Handle en-029
 	Remove t/unused.t - now use t/vars.t

@@ -52,6 +52,7 @@ EU: {
 	]);
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
+	$l->{_have_geoip} = 0;
 
 	SKIP: {
 		skip 'Tests require Internet access', 4 unless(-e 't/online.enabled');

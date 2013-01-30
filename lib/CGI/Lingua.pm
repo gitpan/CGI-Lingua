@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.47';
+our $VERSION = '0.48';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Create a multilingual web page
 
 =head1 VERSION
 
-Version 0.47
+Version 0.48
 
 =cut
 
@@ -542,22 +542,27 @@ sub country {
 	}
 
 	unless(defined $self->{_country}) {
-		if($self->{_have_geoip} == -1) {
-			eval {
-				require Geo::IP;
-				Geo::IP->import();
-			};
-			if($@) {
-				$self->{_have_geoip} = 0;
-			} else {
-				$self->{_have_geoip} = 1;
+		if(($ENV{'HTTP_CF_IPCOUNTRY'}) && ($ENV{'HTTP_CF_IPCOUNTRY'} ne 'XX')) {
+			# Hosted by Cloudfare
+			$self->{_country} = lc($ENV{'HTTP_CF_IPCOUNTRY'});
+		} else {
+			if($self->{_have_geoip} == -1) {
+				eval {
+					require Geo::IP;
+					Geo::IP->import();
+				};
+				if($@) {
+					$self->{_have_geoip} = 0;
+				} else {
+					$self->{_have_geoip} = 1;
+				}
 			}
-		}
-		if($self->{_have_geoip} == 1) {
-			# GEOIP_STANDARD = 0, can't use that because you'll
-			# get a syntax error
-			my $gi = Geo::IP->new(0);
-			$self->{_country} = $gi->country_code_by_addr($ip);
+			if($self->{_have_geoip} == 1) {
+				# GEOIP_STANDARD = 0, can't use that because you'll
+				# get a syntax error
+				my $gi = Geo::IP->new(0);
+				$self->{_country} = $gi->country_code_by_addr($ip);
+			}
 		}
 		unless($self->{_country}) {
 			require Net::Whois::IP;
