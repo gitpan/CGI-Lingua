@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 13;
+use Test::More tests => 19;
 
 BEGIN {
 	require_ok('CGI::Lingua');
@@ -37,6 +37,16 @@ CLOUDFLARE: {
 	ok($l->isa('CGI::Lingua'));
 	$ENV{'HTTP_CF_IPCOUNTRY'} = 'FR';
 	ok($l->country() eq 'fr');
+	ok(defined($l->requested_language()));
+	ok($l->requested_language() eq 'English (United Kingdom)');
+
+	$l = new_ok('CGI::Lingua' => [
+		supported => ['en-gb', 'da', 'fr', 'nl', 'de', 'it', 'cy', 'pt', 'pl', 'ja']
+	]);
+	ok(defined $l);
+	ok($l->isa('CGI::Lingua'));
+	$ENV{'HTTP_CF_IPCOUNTRY'} = 'XX';
+	ok($l->country() eq 'gb');
 	ok(defined($l->requested_language()));
 	ok($l->requested_language() eq 'English (United Kingdom)');
 }

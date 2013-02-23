@@ -47,9 +47,8 @@ EU: {
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-gb';
 	$ENV{'REMOTE_ADDR'} = '217.156.134.120';
-	$l = new_ok('CGI::Lingua' => [
-		supported => ['en']
-	]);
+	$l = $l->new(supported => [ 'en' ]);
+	isa_ok($l, 'CGI::Lingua');
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
 	$l->{_have_geoip} = 0;

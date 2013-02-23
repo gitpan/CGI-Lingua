@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.48';
+our $VERSION = '0.49';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Create a multilingual web page
 
 =head1 VERSION
 
-Version 0.48
+Version 0.49
 
 =cut
 
@@ -52,7 +52,7 @@ to use.
     use CGI::Lingua;
     # ...
     my $cache = CHI->new(driver => 'File', root_dir => '/tmp/cache', namespace => 'CGI::Lingua-countries');
-    my $l = CGI::Lingua->new(supported => ['en', 'fr'], cache => $cache);
+    my $l = CGI::Lingua->new({ supported => ['en', 'fr'], cache => $cache });
 
 =head1 SUBROUTINES/METHODS
 
@@ -95,8 +95,10 @@ option to disable the feature.
 =cut
 
 sub new {
-	my $class = ref($_[0]) || shift;
-	my %params = ref($_[0]) eq 'HASH' ? %{$_[0]} : @_;
+	my $proto = shift;
+
+	my $class = ref($proto) || $proto;
+	my %params = (ref($_[0]) eq 'HASH') ? %{$_[0]} : @_;
 
 	# TODO: check that the number of supported languages is > 0
 	# unless($params{supported} && ($#params{supported} > 0)) {
@@ -548,6 +550,7 @@ sub country {
 		} else {
 			if($self->{_have_geoip} == -1) {
 				eval {
+					local $SIG{__WARN__} = undef;
 					require Geo::IP;
 					Geo::IP->import();
 				};
@@ -775,7 +778,7 @@ L<http://search.cpan.org/dist/CGI-Lingua/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010-2012 Nigel Horne.
+Copyright 2010-2013 Nigel Horne.
 
 This program is released under the following licence: GPL
 
