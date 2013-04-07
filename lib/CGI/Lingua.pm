@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.49';
+our $VERSION = '0.50';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Create a multilingual web page
 
 =head1 VERSION
 
-Version 0.49
+Version 0.50
 
 =cut
 
@@ -77,8 +77,9 @@ set() messages, such as an L<CHI> object.
 
 Takes an optional boolean parameter syslog, to log messages to L<Sys::Syslog>.
 
-Takes optional parameter logger, an object which is used for warnings.
-This logger object is an object that understands warn() message,
+Takes optional parameter logger, an object which is used for warnings and
+traces.
+This logger object is an object that understands warn() and trace() messages,
 such as a L<Log::Log4perl> object.
 
 Since emitting warnings from a CGI class can result in messages being lost (you
@@ -541,30 +542,32 @@ sub country {
 
 	if($self->{_cache}) {
 		$self->{_country} = $self->{_cache}->get($ip);
+		if($self->{_logger}) {
+			if(defined($self->{_country})) {
+				$self->{_logger}->trace("Get $ip from cache = $self->{country}");
+			} else {
+				$self->{_logger}->trace("$ip isn't in the cache");
+			}
+		}
 	}
 
-	unless(defined $self->{_country}) {
+	unless(defined($self->{_country})) {
 		if(($ENV{'HTTP_CF_IPCOUNTRY'}) && ($ENV{'HTTP_CF_IPCOUNTRY'} ne 'XX')) {
 			# Hosted by Cloudfare
 			$self->{_country} = lc($ENV{'HTTP_CF_IPCOUNTRY'});
 		} else {
 			if($self->{_have_geoip} == -1) {
-				eval {
-					local $SIG{__WARN__} = undef;
-					require Geo::IP;
+				if(eval { require Geo::IP; }) {
 					Geo::IP->import();
-				};
-				if($@) {
-					$self->{_have_geoip} = 0;
-				} else {
 					$self->{_have_geoip} = 1;
+				} else {
+					$self->{_have_geoip} = 0;
 				}
 			}
 			if($self->{_have_geoip} == 1) {
 				# GEOIP_STANDARD = 0, can't use that because you'll
 				# get a syntax error
-				my $gi = Geo::IP->new(0);
-				$self->{_country} = $gi->country_code_by_addr($ip);
+				$self->{_country} = Geo::IP->new(0)->country_code_by_addr($ip);
 			}
 		}
 		unless($self->{_country}) {
@@ -614,6 +617,9 @@ sub country {
 			$self->{_country} = lc($self->{_country});
 			if($self->{_cache}) {
 				$self->{_cache}->set($ip, $self->{_country}, '1 month');
+				if($self->{_logger}) {
+					$self->{_logger}->trace("Set $ip to $self->{_country}");
+				}
 			}
 		}
 	}

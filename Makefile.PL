@@ -13,11 +13,13 @@ if($ENV{RELEASE_TESTING}) {
 } else {
 	Getopt::Long::GetOptions('online-tests!' => \$online_tests);
 
-	eval {
-		require Geo::IP;
-		Geo::IP->import();
-	};
-	if($@) {
+	if(eval { require Geo::IP; }) {
+		my $v = Geo::IP->VERSION;
+		print "You have Geo::IP version $v installed, so CGI::Lingua can work fast\n";
+		# It also shouldn't need to do anything with the Internet,
+		# so we can do all tests
+		$online_tests = 1;
+	} else {
 		unless(defined($online_tests)) {
 			my $s = IO::Socket::INET->new(
 				PeerAddr => 'www.google.com:80',
@@ -47,12 +49,6 @@ EOF
 				$online_tests = 0;
 			}
 		}
-	} else {
-		my $v = Geo::IP->VERSION;
-		print "You have Geo::IP version $v installed, so CGI::Lingua can work fast\n";
-		# It also shouldn't need to do anything with the Internet,
-		# so we can do all tests
-		$online_tests = 1;
 	}
 }
 
@@ -80,7 +76,7 @@ WriteMakefile(
 	'Locale::Object::Country' => 0,
 	'I18N::AcceptLanguage' => 0,
 	'Locale::Language' => 0,
-	'I18N::LangTags::Detect' => 0,
+	'I18N::LangTags::Detect' => 1.04,
 	'Data::Validate::IP' => 0,
 	'Net::Whois::IANA' => 0,
 	'Net::Whois::IP' => 0,
