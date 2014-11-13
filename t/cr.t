@@ -28,8 +28,8 @@ LANGUAGES: {
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
 	SKIP: {
-		skip 'Test requires Internet access', 1 unless(-e 't/online.enabled');
+		skip 'Test requires Internet access', 2 unless(-e 't/online.enabled');
 		ok(defined($l->country()));
+		ok(defined($l->requested_language()));
 	}
-	ok(defined($l->requested_language()));
 }

@@ -13,7 +13,13 @@ if($ENV{RELEASE_TESTING}) {
 } else {
 	Getopt::Long::GetOptions('online-tests!' => \$online_tests);
 
-	if(eval { require Geo::IP; }) {
+	if(eval { require IP::Country; }) {
+		my $v = IP::Country->VERSION;
+		print "You have IP::Country version $v installed, so CGI::Lingua can work fast\n";
+		# It also shouldn't need to do anything with the Internet,
+		# so we can do all tests
+		$online_tests = 1;
+	} elsif(eval { require Geo::IP; }) {
 		my $v = Geo::IP->VERSION;
 		print "You have Geo::IP version $v installed, so CGI::Lingua can work fast\n";
 		# It also shouldn't need to do anything with the Internet,
@@ -23,13 +29,14 @@ if($ENV{RELEASE_TESTING}) {
 		unless(defined($online_tests)) {
 			my $s = IO::Socket::INET->new(
 				PeerAddr => 'www.google.com:80',
-				Timeout => 10
+				Timeout => 5
 			);
 			if($s) {
 				print <<EOF;
 
 You appear to be directly connected to the Internet.  I have some tests
 that try to query Whois servers.
+These tests will be slow, consider installing IP::Country or Geo::IP
 
 EOF
 				close($s);
@@ -46,6 +53,7 @@ EOF
 					$online_tests = 0;
 				}
 			} else {
+				print "On-line tests disabled because I couldn't detect an Internet connexion\n";
 				$online_tests = 0;
 			}
 		}
@@ -70,7 +78,7 @@ WriteMakefile(
       : ()),
     PL_FILES            => {},
     PREREQ_PM => {
-        'Test::More' => 0,
+        'Test::Most' => 0,
 	'Test::Requires' => 0,
 	'Test::NoWarnings' => 0,
 	'Locale::Object::Country' => 0,
@@ -84,8 +92,20 @@ WriteMakefile(
 	'CGI::Info' => 0,
 	'Sys::Syslog' => 0,
 	'HTTP::BrowserDetect' => 0,
+	'Net::Subnet' => 0,
 	# 'Test::Kwalitee' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'CGI-Lingua-* t/online.enabled' },
+    META_MERGE		=> {
+    	'meta-spec' => { version => 2 },
+    	resources => {
+    		repository => {
+			type => 'git',
+			url => 'git://github.com/nigelhorne/CGI-Lingua.git',
+			web => 'https://github.com/nigelhorne/CGI-Lingua',
+    		},
+	},
+    },
+    MIN_PERL_VERSION	=> '5.6.2'	# Probably would work, but never tested on earlier versions than this
 );

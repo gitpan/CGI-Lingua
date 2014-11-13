@@ -28,16 +28,19 @@ ES_419: {
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
 	SKIP: {
-		skip 'Tests require Internet access', 4 unless(-e 't/online.enabled');
+		skip 'Tests require Internet access', 5 unless(-e 't/online.enabled');
 		ok(defined($l->country()));
 		ok($l->country() eq 'ar');
 		ok($l->language_code_alpha2() eq 'es');
 		ok($l->language() eq 'Spanish');
+		ok(defined($l->requested_language()));
 	}
-	ok(defined($l->requested_language()));
 	TODO: {
 		local $TODO = "sublanguage doesn't handle 3 characters";
 
-		ok(defined($l->sublanguage()));
+		SKIP: {
+			skip 'Tests require Internet access', 1 unless(-e 't/online.enabled');
+			ok(defined($l->sublanguage()));
+		}
 	};
 }

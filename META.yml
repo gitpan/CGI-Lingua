@@ -3,33 +3,37 @@ abstract: 'Create a multilingual web page'
 author:
   - 'Nigel Horne <njh@bandsman.co.uk>'
 build_requires:
-  ExtUtils::MakeMaker: 0
+  ExtUtils::MakeMaker: '0'
 configure_requires:
-  ExtUtils::MakeMaker: 0
+  ExtUtils::MakeMaker: '0'
 dynamic_config: 1
-generated_by: 'ExtUtils::MakeMaker version 6.64, CPAN::Meta::Converter version 2.130870'
+generated_by: 'ExtUtils::MakeMaker version 7.02, CPAN::Meta::Converter version 2.142690'
 license: open_source
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
+  version: '1.4'
 name: CGI-Lingua
 no_index:
   directory:
     - t
     - inc
 requires:
-  CGI::Info: 0
-  Class::Load: 0
-  Data::Validate::IP: 0
-  HTTP::BrowserDetect: 0
-  I18N::AcceptLanguage: 0
-  I18N::LangTags::Detect: 1.04
-  Locale::Language: 0
-  Locale::Object::Country: 0
-  Net::Whois::IANA: 0
-  Net::Whois::IP: 0
-  Sys::Syslog: 0
-  Test::More: 0
-  Test::NoWarnings: 0
-  Test::Requires: 0
-version: 0.50
+  CGI::Info: '0'
+  Class::Load: '0'
+  Data::Validate::IP: '0'
+  HTTP::BrowserDetect: '0'
+  I18N::AcceptLanguage: '0'
+  I18N::LangTags::Detect: '1.04'
+  Locale::Language: '0'
+  Locale::Object::Country: '0'
+  Net::Subnet: '0'
+  Net::Whois::IANA: '0'
+  Net::Whois::IP: '0'
+  Sys::Syslog: '0'
+  Test::Most: '0'
+  Test::NoWarnings: '0'
+  Test::Requires: '0'
+  perl: '5.006002'
+resources:
+  repository: git://github.com/nigelhorne/CGI-Lingua.git
+version: '0.51'

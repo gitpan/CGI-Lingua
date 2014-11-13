@@ -46,7 +46,10 @@ CLOUDFLARE: {
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
 	$ENV{'HTTP_CF_IPCOUNTRY'} = 'XX';
-	ok($l->country() eq 'gb');
+	SKIP: {
+		skip 'Test requires Internet access', 1 unless(-e 't/online.enabled');
+		ok($l->country() eq 'gb');
+	}
 	ok(defined($l->requested_language()));
 	ok($l->requested_language() eq 'English (United Kingdom)');
 }

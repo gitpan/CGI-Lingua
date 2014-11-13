@@ -5,7 +5,7 @@ use strict;
 use Carp;
 
 use vars qw($VERSION);
-our $VERSION = '0.50';
+our $VERSION = '0.51';
 
 =head1 NAME
 
@@ -13,7 +13,7 @@ CGI::Lingua - Create a multilingual web page
 
 =head1 VERSION
 
-Version 0.50
+Version 0.51
 
 =cut
 
@@ -60,9 +60,10 @@ to use.
 
 Creates a CGI::Lingua object.
 
-Takes one mandatory parameter: a list of languages, in RFC-1766 format, that
-the website supports.
-Language codes are of the form primary-code [ - country-code ] e.g. 'en', 'en-gb' for English and British English respectively.
+Takes one mandatory parameter: a list of languages, in RFC-1766 format,
+that the website supports.
+Language codes are of the form primary-code [ - country-code ] e.g.
+'en', 'en-gb' for English and British English respectively.
 
 For a list of primary-codes refer to ISO-639 (e.g. 'en' for English).
 For a list of country-codes refer to ISO-3166 (e.g. 'gb' for United Kingdom).
@@ -72,15 +73,16 @@ For a list of country-codes refer to ISO-3166 (e.g. 'gb' for United Kingdom).
 
 Takes optional parameter cache, an object which is used to cache country
 lookups.
-This cache object is an object that understands get() and
-set() messages, such as an L<CHI> object.
+This cache object is an object that understands get() and set() messages,
+such as a L<CHI> object.
 
-Takes an optional boolean parameter syslog, to log messages to L<Sys::Syslog>.
+Takes an optional boolean parameter syslog, to log messages to
+L<Sys::Syslog>.
 
-Takes optional parameter logger, an object which is used for warnings and
-traces.
-This logger object is an object that understands warn() and trace() messages,
-such as a L<Log::Log4perl> object.
+Takes optional parameter logger, an object which is used for warnings
+and traces.
+This logger object is an object that understands warn() and trace()
+messages, such as a L<Log::Log4perl> object.
 
 Since emitting warnings from a CGI class can result in messages being lost (you
 may forget to look in your server's log), or appearing to the client in
@@ -109,46 +111,46 @@ sub new {
 		croak('You must give a list of supported languages');
 	}
 
-	my $self = {
+	return bless {
 		_supported => $params{supported}, # List of languages (two letters) that the application
 		_cache => $params{cache},	# CHI
-		_rlanguage => undef,	# Requested language
-		_slanguage => undef,	# Language that the website should display
-		_sublanguage => undef,	# E.g. United States for en-US if you want American English
-		_slanguage_code_alpha2 => undef, # E.g en, fr
-		_sublanguage_code_alpha2 => undef, # E.g. us, gb
-		_country => undef,	# Two letters, e.g. gb
-		_locale => undef,
+		# _rlanguage => undef,	# Requested language
+		# _slanguage => undef,	# Language that the website should display
+		# _sublanguage => undef,	# E.g. United States for en-US if you want American English
+		# _slanguage_code_alpha2 => undef, # E.g en, fr
+		# _sublanguage_code_alpha2 => undef, # E.g. us, gb
+		# _country => undef,	# Two letters, e.g. gb
+		# _locale => undef,	# Locale::Object::Country
 		_syslog => $params{syslog},
 		_dont_use_ip => $params{dont_use_ip} || 0,
 		_logger => $params{logger},
+		_have_ipcountry => -1,	# -1 = don't know
 		_have_geoip => -1,	# -1 = don't know
-	};
-	bless $self, $class;
-
-	return $self;
+	}, $class;
 }
 
 # Emit a warning message somewhere
 sub _warn {
 	my ($self, $params) = @_;
 
-	return unless($$params{warning});
+	my $warning = $$params{'warning'};
+
+	return unless($warning);
 
 	if($self->{_syslog}) {
 		require Sys::Syslog;
 		require CGI::Info;
 
 		Sys::Syslog->import();
-		my $info = CGI::Info->new();
-		openlog($info->script_name(), 'cons,pid', 'user');
-		syslog('warning', $$params{warning});
+		openlog(CGI::Info->new()->script_name(), 'cons,pid', 'user');
+		syslog('warning', $warning);
 		closelog();
 	}
+
 	if($self->{_logger}) {
-		$self->{_logger}->warn($$params{warning});
+		$self->{_logger}->warn($warning);
 	} elsif(!defined($self->{_syslog})) {
-		carp($$params{warning});
+		carp($warning);
 	}
 }
 
@@ -205,6 +207,9 @@ sub name {
 
 Tells the CGI what variant to use e.g. 'United Kingdom', or 'Unknown' if
 it can't be determined.
+
+Sublanguages are handled sensibly, so that if a client requests U.S. English
+on a site that only serves British English, sublanguage() will return undef.
 
 =cut
 
@@ -299,14 +304,23 @@ sub _find_language {
 		I18N::AcceptLanguage->import();
 		Locale::Language->import();
 
+		# Workaround for RT 74338
+		local $SIG{__WARN__} = sub {
+			if($_[0] !~ /^Use of uninitialized value/) {
+				warn $_[0];
+			}
+		};
 		my $l = I18N::AcceptLanguage->new()->accepts($ENV{'HTTP_ACCEPT_LANGUAGE'}, $self->{_supported});
+		$SIG{__WARN__} = 'DEFAULT';
 		if((!$l) && ($ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /(.+)-.+/)) {
 			# Fall back position, e,g. we want US English on a site
 			# only giving British English, so allow it as English.
 			# The calling program can detect that it's not the
 			# wanted flavour of English by looking at
 			# requested_language
-			$l = I18N::AcceptLanguage->new()->accepts($1, $self->{_supported});
+			if(I18N::AcceptLanguage->new()->accepts($1, $self->{_supported})) {
+				$l = $1;
+			}
 		}
 		if($l) {
 			$self->{_slanguage} = Locale::Language::code2language($l);
@@ -322,8 +336,9 @@ sub _find_language {
 					my $l = Locale::Object::Country->new(code_alpha2 => $1);
 					if($l) {
 						$self->{_rlanguage} .= ' (' . $l->name . ')';
-						# The requested sublanguage isn't
-						# supported so don't define that
+						# The requested sublanguage
+						# isn't supported so don't
+						# define that
 					}
 				} elsif($ENV{'HTTP_ACCEPT_LANGUAGE'} =~ /..-([a-z]{2,3})$/i) {
 					my $l = Locale::Object::Country->new(code_alpha3 => $1);
@@ -335,16 +350,19 @@ sub _find_language {
 				}
 				return;
 			}
-			# TODO: Handle es-419 "Spanish (Latin America)
+			# TODO: Handle es-419 "Spanish (Latin America)"
 			if($l =~ /(.+)-(..)$/) {
 				my $alpha2 = $1;
 				my $variety = $2;
-				my $accepts = I18N::AcceptLanguage->new()->accepts($alpha2, $self->{_supported});
+				my $accepts = I18N::AcceptLanguage->new()->accepts($l, $self->{_supported});
 
 				if($accepts) {
 					$self->{_slanguage} = Locale::Language::code2language($accepts);
 					if(length($variety) == 2) {
-						$self->{_sublanguage} = Locale::Object::Country->new(code_alpha2 => $variety)->name;
+						my $c = Locale::Object::Country->new(code_alpha2 => $variety);
+						if(defined($c)) {
+							$self->{_sublanguage} = $c->name;
+						}
 					}
 					if($self->{_slanguage}) {
 						$self->{_slanguage_code_alpha2} = $accepts;
@@ -366,6 +384,13 @@ sub _find_language {
 					$variety = lc($2);
 					# Ignore en-029 etc (Carribean English)
 					if($variety =~ /[a-z]{2,3}/) {
+						if($variety eq 'uk') {
+							# ???
+							$self->_warn({
+								warning => "Resetting country code to GB for $ENV{'HTTP_ACCEPT_LANGUAGE'}"
+							});
+							$variety = 'gb';
+						}
 						my $db = Locale::Object::DB->new();
 						my @results = $db->lookup(
 							table => 'country',
@@ -395,9 +420,9 @@ sub _find_language {
 						}
 					}
 				}
-		       }
+			}
 		}
-		if($self->{_slanguage}) {
+		if($self->{_slanguage} && ($self->{_slanguage} ne 'Unknown')) {
 			if($self->{_rlanguage} eq 'Unknown') {
 				require I18N::LangTags::Detect;
 				$self->{_rlanguage} = I18N::LangTags::Detect::detect();
@@ -469,7 +494,7 @@ sub _find_language {
 				}
 			}
 			if($self->{_cache} && defined($ip)) {
-				$country = $self->{_cache}->set($ip, $country, '1 month');
+				$country = $self->{_cache}->set($ip, $country, '1 hour');
 			}
 		} elsif(defined($ip)) {
 			$self->_warn({
@@ -502,11 +527,11 @@ sub _get_closest {
 
 =head2 country
 
-Returns the two character country code of the remote end.
+Returns the two character country code of the remote end in lower case.
 
-If L<Geo::IP> is installed, CGI::Lingua will make use of that, otherwise
-it will do a Whois lookup.
-If you do not have Geo::IP installed, I recommend you make use of the
+If L<IP::Country> or L<Geo::IP> is installed, CGI::Lingua will make
+use of that, otherwise it will do a Whois lookup.
+If you do not have either installed I recommend you make use of the
 caching capability of CGI::Lingua.
 
 =cut
@@ -514,9 +539,16 @@ caching capability of CGI::Lingua.
 sub country {
 	my $self = shift;
 
-	# FIXME: If previous calls to country() return undef, we'll go waste
-	# time going through again and no doubt returning undef again.
+	# FIXME: If previous calls to country() return undef, we'll
+	# waste time going through again and no doubt returning undef
+	# again.
 	if($self->{_country}) {
+		return $self->{_country};
+	}
+
+	# mod_geoip
+	if(defined($ENV{'GEOIP_COUNTRY_CODE'})) {
+		$self->{_country} = lc($ENV{'GEOIP_COUNTRY_CODE'});
 		return $self->{_country};
 	}
 
@@ -544,7 +576,7 @@ sub country {
 		$self->{_country} = $self->{_cache}->get($ip);
 		if($self->{_logger}) {
 			if(defined($self->{_country})) {
-				$self->{_logger}->trace("Get $ip from cache = $self->{country}");
+				$self->{_logger}->trace("Get $ip from cache = $self->{_country}");
 			} else {
 				$self->{_logger}->trace("$ip isn't in the cache");
 			}
@@ -556,19 +588,48 @@ sub country {
 			# Hosted by Cloudfare
 			$self->{_country} = lc($ENV{'HTTP_CF_IPCOUNTRY'});
 		} else {
-			if($self->{_have_geoip} == -1) {
-				if(eval { require Geo::IP; }) {
-					Geo::IP->import();
-					$self->{_have_geoip} = 1;
+			if($self->{_have_ipcountry} == -1) {
+				if(eval { require IP::Country; }) {
+					IP::Country->import();
+					$self->{_have_ipcountry} = 1;
+					$self->{_ipcountry} = IP::Country::Fast->new();
 				} else {
-					$self->{_have_geoip} = 0;
+					$self->{_have_ipcountry} = 0;
 				}
 			}
-			if($self->{_have_geoip} == 1) {
-				# GEOIP_STANDARD = 0, can't use that because you'll
-				# get a syntax error
-				$self->{_country} = Geo::IP->new(0)->country_code_by_addr($ip);
+			if($self->{_logger}) {
+				$self->{_logger}->debug("have_ipcountry $self->{_have_ipcountry}");
 			}
+
+			if($self->{_have_ipcountry} == 1) {
+				$self->{_country} = $self->{_ipcountry}->inet_atocc($ip);
+				if($self->{_country}) {
+					$self->{_country} = lc($self->{_country});
+				} else {
+					$self->_warn({
+						warning => "$ip is not known by IP::Country"
+					});
+				}
+			}
+			unless(defined($self->{_country})) {
+				if($self->{_have_geoip} == -1) {
+					if(eval { require Geo::IP; }) {
+						Geo::IP->import();
+						$self->{_have_geoip} = 1;
+						# GEOIP_STANDARD = 0, can't use that because you'll
+						# get a syntax error
+						$self->{_geoip} = Geo::IP->new(0);
+					} else {
+						$self->{_have_geoip} = 0;
+					}
+				}
+				if($self->{_have_geoip} == 1) {
+					$self->{_country} = $self->{_geoip}->country_code_by_addr($ip);
+				}
+			}
+		}
+		if($self->{_country} && ($self->{_country} eq 'eu')) {
+			delete($self->{_country});
 		}
 		unless($self->{_country}) {
 			require Net::Whois::IP;
@@ -576,11 +637,11 @@ sub country {
 
 			my $whois;
 
-			# Catch connection timeouts to whois.ripe.net by turning
-			# the carp into an error
-			local $SIG{__WARN__} = sub { die $_[0] };
-
 			eval {
+				# Catch connection timeouts to
+				# whois.ripe.net by turning the carp
+				# into an error
+				local $SIG{__WARN__} = sub { die $_[0] };
 				$whois = Net::Whois::IP::whoisip_query($ip);
 			};
 			unless($@ || !defined($whois) || (ref($whois) ne 'HASH')) {
@@ -588,6 +649,9 @@ sub country {
 					$self->{_country} = $whois->{Country};
 				} elsif(defined($whois->{country})) {
 					$self->{_country} = $whois->{country};
+				}
+				if($self->{_country} && ($self->{_country} eq 'eu')) {
+					delete($self->{_country});
 				}
 			}
 
@@ -603,6 +667,9 @@ sub country {
 					$self->{_country} = $iana->country();
 				}
 			}
+			if($self->{_country} eq 'eu') {
+				delete($self->{_country});
+			}
 			if($self->{_country}) {
 				# 190.24.1.122 has carriage return in its WHOIS record
 				$self->{_country} =~ s/[\r\n]//g;
@@ -612,22 +679,35 @@ sub country {
 				}
 			}
 		}
-
-		if($self->{_country}) {
-			$self->{_country} = lc($self->{_country});
-			if($self->{_cache}) {
-				$self->{_cache}->set($ip, $self->{_country}, '1 month');
-				if($self->{_logger}) {
-					$self->{_logger}->trace("Set $ip to $self->{_country}");
-				}
-			}
-		}
 	}
 
-	if($self->{_country} && ($self->{_country} eq 'hk')) {
-		# Hong Kong is no longer a country, but Whois thinks
-		# it is - try "whois 218.213.130.87"
-		$self->{_country} = 'cn';
+	if($self->{_country}) {
+		$self->{_country} = lc($self->{_country});
+		if($self->{_country} eq 'hk') {
+			# Hong Kong is no longer a country, but Whois thinks
+			# it is - try "whois 218.213.130.87"
+			$self->{_country} = 'cn';
+		} elsif($self->country eq 'eu') {
+			require Net::Subnet;
+
+			# RT-86809, Baidu claims it's in EU not CN
+			Net::Subnet->import();
+			if(subnet_matcher('185.10.104.0/22')->($ip)) {
+				$self->{_country} = 'cn';
+			} else {
+				# There is no country called 'eu'
+				$self->_warn({
+					warning => "$ip has country of eu"
+				});
+				delete($self->{_country});
+			}
+		}
+		if($self->{_cache}) {
+			$self->{_cache}->set($ip, $self->{_country}, '1 hour');
+			if($self->{_logger}) {
+				$self->{_logger}->debuf("Set $ip to $self->{_country}");
+			}
+		}
 	}
 
 	return $self->{_country};
@@ -641,7 +721,7 @@ which would be useful for default currency, date formatting etc.
 This method attempts to detect the information, but it is a best guess
 and is not 100% reliable.  But it's better than nothing ;-)
 
-Returns a Locale::Object::Country object.
+Returns a L<Locale::Object::Country> object.
 
 To be clear, if you're in the US and request the language in Spanish,
 and the site supports it, language() will return 'Spanish', and locale() will
@@ -703,9 +783,10 @@ sub locale {
 
 	if($country) {
 		$country =~ s/[\r\n]//g;
+
 		my $c;
 		eval {
-			local $SIG{__WARN__} = undef;
+			local $SIG{__WARN__} = sub { die $_[0] };
 			$c = Locale::Object::Country->new(code_alpha2 => $country);
 		};
 		unless($@) {
@@ -747,8 +828,6 @@ automatically be notified of progress on your bug as I make changes.
 Locale::Country::Object
 HTTP::BrowserDetect
 
-
-
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
@@ -784,7 +863,7 @@ L<http://search.cpan.org/dist/CGI-Lingua/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010-2013 Nigel Horne.
+Copyright 2010-2014 Nigel Horne.
 
 This program is released under the following licence: GPL
 

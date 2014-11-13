@@ -73,14 +73,12 @@ LANGUAGES: {
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
 	SKIP: {
-		skip 'Tests require Internet access', 3 unless(-e 't/online.enabled');
+		skip 'Tests require Internet access', 6 unless(-e 't/online.enabled');
 		ok($l->name() eq 'English');
 		ok(defined($l->code_alpha2()));
 		ok($l->code_alpha2() eq 'en');
-	}
-	ok(defined $l->requested_language());
-	SKIP: {
-		skip 'Tests require Internet access', 2 unless(-e 't/online.enabled');
+
+		ok(defined $l->requested_language());
 		ok($l->requested_language() =~ /English/);
 		ok($l->country() eq 'gb');
 	}

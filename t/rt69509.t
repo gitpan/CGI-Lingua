@@ -29,14 +29,15 @@ RT69509: {
 	ok(defined $l);
 	ok($l->isa('CGI::Lingua'));
 	SKIP: {
-		skip 'Test requires Internet access', 1 unless(-e 't/online.enabled');
+		skip 'Test requires Internet access', 4 unless(-e 't/online.enabled');
 		ok($l->country() eq 'lk');
-	}
-	ok(defined($l->requested_language()));
+		ok(defined($l->requested_language()));
 
-	TODO: {
-		local $TODO = 'https://rt.cpan.org/Public/Bug/Display.html?id=69509';
-		ok($l->language() eq 'Unknown');
-		ok(!defined($l->code_alpha2()));
-	};
+		TODO: {
+			local $TODO = 'https://rt.cpan.org/Public/Bug/Display.html?id=69509';
+
+			ok($l->language() eq 'Unknown');
+			ok(!defined($l->code_alpha2()));
+		};
+	}
 }

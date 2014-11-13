@@ -1,7 +1,7 @@
 #!perl -T
 
 use strict;
-use Test::More tests => 2;
+use Test::Most tests => 2;
 
 BEGIN {
 	use_ok( 'CGI::Lingua' ) || print "Bail out!

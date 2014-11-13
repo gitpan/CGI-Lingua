@@ -4,7 +4,7 @@
       "Nigel Horne <njh@bandsman.co.uk>"
    ],
    "dynamic_config" : 1,
-   "generated_by" : "ExtUtils::MakeMaker version 6.64, CPAN::Meta::Converter version 2.130870",
+   "generated_by" : "ExtUtils::MakeMaker version 7.02, CPAN::Meta::Converter version 2.142690",
    "license" : [
       "open_source"
    ],
@@ -40,15 +40,24 @@
             "I18N::LangTags::Detect" : "1.04",
             "Locale::Language" : "0",
             "Locale::Object::Country" : "0",
+            "Net::Subnet" : "0",
             "Net::Whois::IANA" : "0",
             "Net::Whois::IP" : "0",
             "Sys::Syslog" : "0",
-            "Test::More" : "0",
+            "Test::Most" : "0",
             "Test::NoWarnings" : "0",
-            "Test::Requires" : "0"
+            "Test::Requires" : "0",
+            "perl" : "5.006002"
          }
       }
    },
    "release_status" : "stable",
-   "version" : "0.50"
+   "resources" : {
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/nigelhorne/CGI-Lingua.git",
+         "web" : "https://github.com/nigelhorne/CGI-Lingua"
+      }
+   },
+   "version" : "0.51"
 }

@@ -126,9 +126,9 @@ unless(-e 't/online.enabled') {
 	ok($l->language() eq 'English');
 	ok(defined($l->requested_language()));
 	ok($l->requested_language() eq 'English (United States)');
-	ok($l->sublanguage() eq 'United States');
+	ok(!defined($l->sublanguage()));
 	ok($l->language_code_alpha2() eq 'en');
-	ok($l->sublanguage_code_alpha2() eq 'us');
+	ok(!defined($l->sublanguage_code_alpha2()));
 	ok(!defined($l->country()));
 
 	# Ask for US English on a site serving British English and English
@@ -168,11 +168,19 @@ unless(-e 't/online.enabled') {
 	eval { $l->language_code_alpha2() };
 	ok($@ =~ /a\.b\.c\.d isn't a valid IPv4 address/);
 
-	$ENV{'REMOTE_ADDR'} = '255.255.255.255';
-	$l = new_ok('CGI::Lingua' => [
-		supported => ['de', 'fr']
-	]);
-	ok($l->language() eq 'Unknown');
+	SKIP: {
+		eval { require IP::Country; };
+		skip 'IP::Country not installed', 2 if($@);
+
+		$ENV{'REMOTE_ADDR'} = '255.255.255.255';
+		$l = new_ok('CGI::Lingua' => [
+			supported => ['de', 'fr']
+		]);
+		eval {
+			ok($l->language() eq 'Unknown');
+		};
+		ok($@ =~ /not known by IP::Country/);
+	}
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-US,en;q=0.8';
 	$ENV{'REMOTE_ADDR'} = '74.92.149.57';
@@ -240,34 +248,13 @@ unless(-e 't/online.enabled') {
 	$l = new_ok('CGI::Lingua' => [
 		supported => [ 'en-gb' ]
 	]);
-	eval {
-		my $lang = $l->language();
-	};
-	if($@) {
-		ok($@ =~ /Can't determine values for en-zz/);
-	} else {
-		ok(0);
-	}
-	ok($l->sublanguage() eq 'Unknown');
+	ok($l->language() eq 'English');
+	ok(!defined($l->sublanguage()));
 
 	$ENV{'HTTP_ACCEPT_LANGUAGE'} = 'en-gb';
 	$l = new_ok('CGI::Lingua' => [
 		supported => [ 'en-zz' ]
 	]);
-	eval {
-		my $lang = $l->language();
-	};
-	if($@) {
-		ok($@ =~ /No result found in country table for 'zz'/);
-	} else {
-		ok(0);
-	}
-	eval {
-		my $lang = $l->sublanguage();
-	};
-	if($@) {
-		ok($@ =~ /No result found in country table for 'zz'/);
-	} else {
-		ok(0);
-	}
+	ok($l->language() eq 'English');
+	ok(!defined($l->sublanguage()));
 }

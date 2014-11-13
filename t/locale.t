@@ -7,7 +7,7 @@ use Test::More;
 unless(-e 't/online.enabled') {
 	plan skip_all => 'On-line tests disabled';
 } else {
-	plan tests => 42;
+	plan tests => 47;
 
 	use_ok('CGI::Lingua');
 	require Test::NoWarnings;
@@ -120,4 +120,21 @@ unless(-e 't/online.enabled') {
 	$locale = $l->locale();
 	isa_ok($locale, 'Locale::Object::Country');
 	ok(uc($l->locale()->code_alpha2()) eq 'CA');
+
+	# Find nothing
+	delete $ENV{'REMOTE_ADDR'};
+	$l = new_ok('CGI::Lingua' => [
+		supported => [ 'en-gb', 'da', 'fr', 'nl', 'de', 'it', 'cy', 'pt', 'pl', 'ja' ],
+	]);
+	$locale = $l->locale();
+	ok(!defined($locale));
+
+	# Add GEOIP_COUNTRY_CODE and now something should be found
+	$ENV{'GEOIP_COUNTRY_CODE'} = 'GB';
+	$l = new_ok('CGI::Lingua' => [
+		supported => [ 'en-gb', 'da', 'fr', 'nl', 'de', 'it', 'cy', 'pt', 'pl', 'ja' ],
+	]);
+	$locale = $l->locale();
+	isa_ok($locale, 'Locale::Object::Country');
+	ok(uc($l->locale()->code_alpha2()) eq 'GB');
 }
